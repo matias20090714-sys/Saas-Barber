@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BARBERFLOW - SISTEMA DE GESTIÓN PARA BARBERÍAS (HERRAMIENTAS OPERATIVAS)
+   BARBERFLOW - CONTROLADOR DE HERRAMIENTAS OPERATIVAS (MULTI-TENANT REAL)
    ========================================================================== */
 
 let currentAgendaDate = new Date().toISOString().split('T')[0];
@@ -74,7 +74,7 @@ function showToast(message, type = 'success') {
 }
 
 /* ==========================================================================
-   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA
+   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA (MULTI-TENANT)
    ========================================================================== */
 function loadShopBranding() {
     const store = getStore();
@@ -82,24 +82,34 @@ function loadShopBranding() {
     
     document.getElementById('headerShopTitle').textContent = store.shop.name;
     document.getElementById('settingShopName').value = store.shop.name;
-    document.getElementById('settingShopAddress').value = store.shop.address;
-    document.getElementById('settingShopPhone').value = store.shop.phone;
+    document.getElementById('settingShopAddress').value = store.shop.address || '';
+    document.getElementById('settingShopPhone').value = store.shop.phone || '';
     document.getElementById('settingCurrency').value = curr;
 
-    const slug = store.shop.name.toLowerCase().replace(/[^a-z0-9]/g, '-');
-    document.getElementById('publicLinkDisplay').value = `https://barberflow.app/reservas/${slug}`;
+    const currentOrigin = window.location.origin + window.location.pathname;
+    const directLink = `${currentOrigin}?shop=${store.shop.id || getShopIdFromUrl()}`;
+    const linkInput = document.getElementById('shopDirectLinkInput');
+    if (linkInput) linkInput.value = directLink;
 }
 
 function saveShopSettings() {
     const store = getStore();
-    store.shop.name = document.getElementById('settingShopName').value;
-    store.shop.address = document.getElementById('settingShopAddress').value;
-    store.shop.phone = document.getElementById('settingShopPhone').value;
-    store.shop.currency = document.getElementById('settingCurrency').value || '$';
+    const newName = document.getElementById('settingShopName').value.trim();
+    store.shop.name = newName || 'Mi Barbería';
+    store.shop.address = document.getElementById('settingShopAddress').value.trim();
+    store.shop.phone = document.getElementById('settingShopPhone').value.trim();
+    store.shop.currency = document.getElementById('settingCurrency').value.trim() || '$';
 
     saveStore(store);
     loadShopBranding();
-    showToast('¡Datos de la barbería guardados!', 'success');
+    showToast('¡Ajustes de la barbería guardados!', 'success');
+}
+
+function copyDirectShopLink() {
+    const input = document.getElementById('shopDirectLinkInput');
+    if (!input) return;
+    navigator.clipboard.writeText(input.value);
+    showToast('Enlace copiado al portapapeles', 'success');
 }
 
 function exportDataBackup() {
@@ -140,7 +150,7 @@ function loadAgenda() {
     filtersContainer.innerHTML = filterHtml;
 
     // Filtrar turnos
-    const dayApps = store.appointments.filter(a => {
+    const dayApps = (store.appointments || []).filter(a => {
         const matchDate = a.date === currentAgendaDate;
         const matchBarber = currentBarberFilter === 'all' || a.barberId === currentBarberFilter;
         return matchDate && matchBarber;
@@ -150,12 +160,12 @@ function loadAgenda() {
     document.getElementById('kpiTodayCount').textContent = dayApps.length;
     const estRev = dayApps.reduce((acc, a) => acc + (a.amount || 0), 0);
     document.getElementById('kpiTodayRevenue').textContent = `${curr}${estRev}`;
-    document.getElementById('kpiActiveBarbers').textContent = store.barbers.filter(b => b.active).length;
+    document.getElementById('kpiActiveBarbers').textContent = (store.barbers || []).filter(b => b.active).length;
     
     const nextPending = dayApps.find(a => a.status === 'Pendiente' || a.status === 'EnAtencion');
     document.getElementById('kpiNextTime').textContent = nextPending ? nextPending.time : '--:--';
 
-    const pendingCount = store.appointments.filter(a => a.date === currentAgendaDate && a.status === 'Pendiente').length;
+    const pendingCount = (store.appointments || []).filter(a => a.date === currentAgendaDate && a.status === 'Pendiente').length;
     document.getElementById('badgePendingCount').textContent = pendingCount;
 
     if (dayApps.length === 0) {
@@ -163,7 +173,7 @@ function loadAgenda() {
             <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
                 <i class="fa-solid fa-calendar-xmark text-muted" style="font-size: 2.5rem; margin-bottom: 0.8rem;"></i>
                 <h3>No hay turnos para esta fecha</h3>
-                <p class="text-muted">Agrega un turno manual con el botón superior.</p>
+                <p class="text-muted">Presiona el botón "+ Agendar Turno" para registrar una cita o cliente en el local.</p>
                 <button class="btn btn-primary mt-4" onclick="openNewWalkInModal()">+ Agendar Turno</button>
             </div>
         `;
@@ -267,27 +277,11 @@ function sendWhatsAppReminder(appId) {
 
     const service = store.services.find(s => s.id === app.serviceId) || { name: 'Corte' };
     const msg = encodeURIComponent(`Hola ${app.clientName}! Te confirmamos tu turno de hoy a las ${app.time} hs para "${service.name}" en ${store.shop.name}. ¿Nos confirmas tu asistencia? ¡Te esperamos!`);
-    window.open(`https://wa.me/${app.clientPhone.replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
+    window.open(`https://wa.me/${(app.clientPhone || '').replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
 }
 
 /* ==========================================================================
-   2. LINK DE RESERVAS ONLINE
-   ========================================================================== */
-function copyPublicBookingLink() {
-    const link = document.getElementById('publicLinkDisplay').value;
-    navigator.clipboard.writeText(link);
-    showToast('¡Link copiado al portapapeles!', 'success');
-}
-
-function shareOnWhatsApp() {
-    const store = getStore();
-    const link = document.getElementById('publicLinkDisplay').value;
-    const msg = encodeURIComponent(`💈 ¡Hola! Reserva tu turno en ${store.shop.name} desde este link:\n${link}`);
-    window.open(`https://wa.me/?text=${msg}`, '_blank');
-}
-
-/* ==========================================================================
-   3. CAJA & PUNTO DE VENTA (POS)
+   2. CAJA & PUNTO DE VENTA (POS)
    ========================================================================== */
 function loadPOS() {
     const store = getStore();
@@ -300,7 +294,7 @@ function loadPOS() {
     let card = 0;
     let transfer = 0;
 
-    store.posTransactions.forEach(t => {
+    (store.posTransactions || []).forEach(t => {
         const amt = t.type === 'expense' ? -t.amount : t.amount;
         total += amt;
         if (t.method === 'Efectivo') cash += amt;
@@ -313,7 +307,7 @@ function loadPOS() {
     document.getElementById('posCardToday').textContent = `${curr}${card.toFixed(2)}`;
     document.getElementById('posTransferToday').textContent = `${curr}${transfer.toFixed(2)}`;
 
-    if (store.posTransactions.length === 0) {
+    if (!store.posTransactions || store.posTransactions.length === 0) {
         tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay movimientos registrados hoy</td></tr>`;
         return;
     }
@@ -339,14 +333,14 @@ function loadPOS() {
 
 function deletePosTransaction(id) {
     const store = getStore();
-    store.posTransactions = store.posTransactions.filter(t => t.id !== id);
+    store.posTransactions = (store.posTransactions || []).filter(t => t.id !== id);
     saveStore(store);
     loadPOS();
     showToast('Movimiento eliminado', 'info');
 }
 
 /* ==========================================================================
-   4. COMISIONES
+   3. COMISIONES
    ========================================================================== */
 function loadCommissions() {
     const store = getStore();
@@ -355,9 +349,9 @@ function loadCommissions() {
     const tbody = document.getElementById('commissionsTableBody');
     if (!grid || !tbody) return;
 
-    const completedApps = store.appointments.filter(a => a.status === 'Completado');
+    const completedApps = (store.appointments || []).filter(a => a.status === 'Completado');
 
-    grid.innerHTML = store.barbers.map(barber => {
+    grid.innerHTML = (store.barbers || []).map(barber => {
         const bApps = completedApps.filter(a => a.barberId === barber.id);
         const totalBilled = bApps.reduce((sum, a) => sum + (a.amount || 0), 0);
         const barberCut = totalBilled * (barber.commissionPct / 100);
@@ -415,11 +409,11 @@ function loadCommissions() {
 }
 
 /* ==========================================================================
-   5. CLIENTES & CRM
+   4. CLIENTES & CRM
    ========================================================================== */
 function loadClientsCRM() {
     const store = getStore();
-    renderClientsTable(store.clients);
+    renderClientsTable(store.clients || []);
 }
 
 function renderClientsTable(list) {
@@ -428,23 +422,25 @@ function renderClientsTable(list) {
     const tbody = document.getElementById('clientsTableBody');
     if (!tbody) return;
 
-    if (list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No se encontraron clientes</td></tr>`;
+    if (!list || list.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay clientes registrados aún. Se añadirán automáticamente cuando agendes turnos.</td></tr>`;
         return;
     }
 
     tbody.innerHTML = list.map(c => `
         <tr>
             <td><strong>${c.name}</strong></td>
-            <td><i class="fa-brands fa-whatsapp text-green"></i> ${c.phone}</td>
-            <td><span class="status-badge status-Pendiente">${c.visits} visitas</span></td>
-            <td class="text-green"><strong>${curr}${c.totalSpent}</strong></td>
-            <td>${c.lastVisit}</td>
+            <td><i class="fa-brands fa-whatsapp text-green"></i> ${c.phone || '-'}</td>
+            <td><span class="status-badge status-Pendiente">${c.visits || 1} visitas</span></td>
+            <td class="text-green"><strong>${curr}${c.totalSpent || 0}</strong></td>
+            <td>${c.lastVisit || '-'}</td>
             <td><em style="color:var(--text-muted);">${c.notes || '-'}</em></td>
             <td>
-                <button class="btn-icon" title="Escribir por WhatsApp" onclick="window.open('https://wa.me/${c.phone.replace(/[^0-9]/g, '')}', '_blank')">
-                    <i class="fa-brands fa-whatsapp text-green"></i>
-                </button>
+                ${c.phone ? `
+                    <button class="btn-icon" title="Escribir por WhatsApp" onclick="window.open('https://wa.me/${c.phone.replace(/[^0-9]/g, '')}', '_blank')">
+                        <i class="fa-brands fa-whatsapp text-green"></i>
+                    </button>
+                ` : '-'}
             </td>
         </tr>
     `).join('');
@@ -453,19 +449,19 @@ function renderClientsTable(list) {
 function filterClientsList() {
     const q = document.getElementById('clientSearchInput').value.toLowerCase();
     const store = getStore();
-    const filtered = store.clients.filter(c => c.name.toLowerCase().includes(q) || c.phone.includes(q));
+    const filtered = (store.clients || []).filter(c => (c.name && c.name.toLowerCase().includes(q)) || (c.phone && c.phone.includes(q)));
     renderClientsTable(filtered);
 }
 
 /* ==========================================================================
-   6. EQUIPO & BARBEROS
+   5. EQUIPO & BARBEROS
    ========================================================================== */
 function loadBarbersManage() {
     const store = getStore();
     const container = document.getElementById('barbersManageContainer');
     if (!container) return;
 
-    container.innerHTML = store.barbers.map(b => `
+    container.innerHTML = (store.barbers || []).map(b => `
         <div class="barber-manage-card">
             <div class="barber-manage-info">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
@@ -484,7 +480,7 @@ function loadBarbersManage() {
 
 function deleteBarber(id) {
     const store = getStore();
-    if (store.barbers.length <= 1) {
+    if ((store.barbers || []).length <= 1) {
         alert('Debes tener al menos un barbero en el equipo.');
         return;
     }
@@ -497,7 +493,7 @@ function deleteBarber(id) {
 }
 
 /* ==========================================================================
-   7. SERVICIOS & PRECIOS
+   6. SERVICIOS & PRECIOS
    ========================================================================== */
 function loadServicesManage() {
     const store = getStore();
@@ -505,7 +501,7 @@ function loadServicesManage() {
     const container = document.getElementById('manageServicesList');
     if (!container) return;
 
-    container.innerHTML = store.services.map(s => `
+    container.innerHTML = (store.services || []).map(s => `
         <div class="service-item-row">
             <div>
                 <strong>${s.name}</strong>
@@ -521,7 +517,7 @@ function loadServicesManage() {
 
 function deleteService(id) {
     const store = getStore();
-    if (store.services.length <= 1) {
+    if ((store.services || []).length <= 1) {
         alert('Debes tener al menos un servicio configurado.');
         return;
     }
@@ -547,18 +543,18 @@ function openNewWalkInModal() {
     const curr = store.shop.currency || '$';
 
     const srvSelect = document.getElementById('walkInServiceSelect');
-    srvSelect.innerHTML = store.services.map(s => `<option value="${s.id}">${s.name} (${curr}${s.price})</option>`).join('');
+    srvSelect.innerHTML = (store.services || []).map(s => `<option value="${s.id}">${s.name} (${curr}${s.price})</option>`).join('');
 
     const barbSelect = document.getElementById('walkInBarberSelect');
-    barbSelect.innerHTML = store.barbers.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    barbSelect.innerHTML = (store.barbers || []).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
 
     openModal('walkInModal');
 }
 
 function handleWalkInSubmit(e) {
     e.preventDefault();
-    const name = document.getElementById('walkInClientName').value;
-    const phone = document.getElementById('walkInClientPhone').value || '+54 9 11 0000-0000';
+    const name = document.getElementById('walkInClientName').value.trim();
+    const phone = document.getElementById('walkInClientPhone').value.trim() || '';
     const srvId = document.getElementById('walkInServiceSelect').value;
     const barbId = document.getElementById('walkInBarberSelect').value;
     const date = document.getElementById('walkInDate').value;
@@ -576,17 +572,19 @@ function handleWalkInSubmit(e) {
         date: date,
         time: time,
         status: 'EnAtencion',
-        notes: 'Cliente en el local',
+        notes: 'Cliente en local',
         paid: false,
-        amount: service ? service.price : 15
+        amount: service ? service.price : 10
     };
 
+    if (!store.appointments) store.appointments = [];
     store.appointments.push(newApp);
 
-    // Agregar o actualizar en CRM
-    const cli = store.clients.find(c => c.phone === phone || c.name === name);
+    // Agregar en CRM
+    if (!store.clients) store.clients = [];
+    const cli = store.clients.find(c => (phone && c.phone === phone) || c.name === name);
     if (cli) {
-        cli.visits += 1;
+        cli.visits = (cli.visits || 1) + 1;
     } else {
         store.clients.push({
             id: 'cli-' + Date.now(),
@@ -609,18 +607,19 @@ function handleWalkInSubmit(e) {
 function openQuickSaleModal() {
     const store = getStore();
     const barbSelect = document.getElementById('saleBarberSelect');
-    barbSelect.innerHTML = `<option value="">Venta General del Local</option>` + store.barbers.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    barbSelect.innerHTML = `<option value="">Venta General del Local</option>` + (store.barbers || []).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
     openModal('quickSaleModal');
 }
 
 function handleQuickSaleSubmit(e) {
     e.preventDefault();
-    const concept = document.getElementById('saleConcept').value;
+    const concept = document.getElementById('saleConcept').value.trim();
     const amount = parseFloat(document.getElementById('saleAmount').value);
     const method = document.getElementById('salePaymentMethod').value;
     const barberId = document.getElementById('saleBarberSelect').value;
 
     const store = getStore();
+    if (!store.posTransactions) store.posTransactions = [];
     store.posTransactions.push({
         id: 'pos-' + Date.now(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -635,7 +634,7 @@ function handleQuickSaleSubmit(e) {
     saveStore(store);
     closeModal('quickSaleModal');
     loadPOS();
-    showToast(`Venta de "$${amount}" registrada en caja`, 'success');
+    showToast(`Venta registrada en caja`, 'success');
 }
 
 function openExpenseModal() {
@@ -646,6 +645,7 @@ function openExpenseModal() {
     if (isNaN(amount) || amount <= 0) return;
 
     const store = getStore();
+    if (!store.posTransactions) store.posTransactions = [];
     store.posTransactions.push({
         id: 'pos-' + Date.now(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -668,16 +668,17 @@ function openAddBarberModal() {
 
 function handleAddBarberSubmit(e) {
     e.preventDefault();
-    const name = document.getElementById('newBarberName').value;
-    const specialty = document.getElementById('newBarberSpecialty').value;
+    const name = document.getElementById('newBarberName').value.trim();
+    const specialty = document.getElementById('newBarberSpecialty').value.trim();
     const commission = parseInt(document.getElementById('newBarberCommission').value);
 
     const store = getStore();
+    if (!store.barbers) store.barbers = [];
     store.barbers.push({
         id: 'barb-' + Date.now(),
         name: name,
-        specialty: specialty,
-        commissionPct: commission,
+        specialty: specialty || 'Barbero',
+        commissionPct: commission || 50,
         active: true
     });
 
@@ -693,17 +694,18 @@ function openAddServiceModal() {
 
 function handleAddServiceSubmit(e) {
     e.preventDefault();
-    const name = document.getElementById('newServiceName').value;
+    const name = document.getElementById('newServiceName').value.trim();
     const price = parseFloat(document.getElementById('newServicePrice').value);
     const duration = parseInt(document.getElementById('newServiceDuration').value);
-    const desc = document.getElementById('newServiceDesc').value;
+    const desc = document.getElementById('newServiceDesc').value.trim();
 
     const store = getStore();
+    if (!store.services) store.services = [];
     store.services.push({
         id: 'srv-' + Date.now(),
         name: name,
         price: price,
-        duration: duration,
+        duration: duration || 30,
         desc: desc
     });
 

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BarberFlow - Panel de Control y Gestión</title>
+    <title>BarberFlow - Panel de Control para Barberías</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,20 +24,16 @@
                 </div>
                 <div class="shop-info-text">
                     <h1 class="shop-title-display" id="headerShopTitle">Mi Barbería</h1>
-                    <span class="shop-subtitle"><i class="fa-solid fa-gear"></i> Configuración</span>
+                    <span class="shop-subtitle"><i class="fa-solid fa-gear"></i> Ajustes de Barbería</span>
                 </div>
             </div>
 
-            <!-- Navegación de Herramientas -->
+            <!-- Navegación de Herramientas Reales -->
             <nav class="main-tabs-nav">
                 <button class="nav-tab-btn active" data-tab="agenda" onclick="switchMainTab('agenda')">
                     <i class="fa-solid fa-calendar-days"></i>
                     <span>Agenda</span>
                     <span class="badge-pill" id="badgePendingCount">0</span>
-                </button>
-                <button class="nav-tab-btn" data-tab="booking-link" onclick="switchMainTab('booking-link')">
-                    <i class="fa-solid fa-link"></i>
-                    <span>Link de Reservas</span>
                 </button>
                 <button class="nav-tab-btn" data-tab="pos" onclick="switchMainTab('pos')">
                     <i class="fa-solid fa-cash-register"></i>
@@ -65,7 +61,7 @@
                 <button class="btn btn-primary btn-sm" onclick="openNewWalkInModal()">
                     <i class="fa-solid fa-plus"></i> + Nuevo Turno
                 </button>
-                <button class="btn-icon" onclick="exportDataBackup()" title="Descargar Respaldo (JSON)">
+                <button class="btn-icon" onclick="exportDataBackup()" title="Descargar Respaldo de esta Barbería">
                     <i class="fa-solid fa-download"></i>
                 </button>
             </div>
@@ -82,7 +78,7 @@
             <div class="panel-header-row">
                 <div class="panel-title-area">
                     <h2>Agenda de Turnos</h2>
-                    <p class="text-muted">Turnos del día, asignación a barberos y cobro de servicios.</p>
+                    <p class="text-muted">Control de citas diarias, atención en silla y cobros.</p>
                 </div>
                 <div class="panel-controls-group">
                     <div class="date-navigator">
@@ -101,7 +97,7 @@
                 <div class="kpi-item">
                     <div class="kpi-icon gold"><i class="fa-solid fa-calendar-check"></i></div>
                     <div>
-                        <span class="kpi-label">Turnos Hoy</span>
+                        <span class="kpi-label">Turnos del Día</span>
                         <strong class="kpi-val" id="kpiTodayCount">0</strong>
                     </div>
                 </div>
@@ -136,40 +132,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 2. LINK DE RESERVAS ONLINE PARA CLIENTES                                  -->
-        <!-- ========================================================================= -->
-        <section class="tab-panel" id="panelBookingLink">
-            <div class="share-link-card">
-                <div class="share-link-header">
-                    <div class="share-icon"><i class="fa-solid fa-qrcode"></i></div>
-                    <div>
-                        <h3>Link Directo de Reservas</h3>
-                        <p class="text-muted">Este es el link que puedes colocar en tu Instagram, WhatsApp o redes sociales para que tus clientes agenden directamente.</p>
-                    </div>
-                </div>
-                <div class="share-input-row">
-                    <input type="text" readonly id="publicLinkDisplay" class="input-field link-input" value="https://barberflow.app/reservas">
-                    <button class="btn btn-primary" onclick="copyPublicBookingLink()"><i class="fa-regular fa-copy"></i> Copiar Link</button>
-                    <button class="btn btn-whatsapp" onclick="shareOnWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Compartir por WhatsApp</button>
-                </div>
-            </div>
-
-            <div class="app-card mt-4">
-                <div class="card-header">
-                    <h3><i class="fa-solid fa-circle-info text-gold"></i> Instrucciones de Uso</h3>
-                </div>
-                <div class="card-body">
-                    <p class="text-muted" style="margin-bottom: 1rem;">
-                        1. Configura tus servicios y precios en la pestaña <strong>Servicios y Ajustes</strong>.<br>
-                        2. Agrega a los barberos de tu equipo en la pestaña <strong>Equipo</strong>.<br>
-                        3. Copia el link superior y compártelo. Todos los turnos que tus clientes reserven ingresarán automáticamente en tu <strong>Agenda</strong> en tiempo real.
-                    </p>
-                </div>
-            </div>
-        </section>
-
-        <!-- ========================================================================= -->
-        <!-- 3. CAJA & PUNTO DE VENTA (POS)                                            -->
+        <!-- 2. CAJA & PUNTO DE VENTA (POS)                                            -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelPos">
             <div class="panel-header-row">
@@ -233,7 +196,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 4. COMISIONES DE BARBEROS                                                 -->
+        <!-- 3. COMISIONES DE BARBEROS                                                 -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelCommissions">
             <div class="panel-header-row">
@@ -269,7 +232,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 5. CLIENTES & CRM                                                         -->
+        <!-- 4. CLIENTES & CRM                                                         -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelClients">
             <div class="panel-header-row">
@@ -306,7 +269,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 6. EQUIPO DE BARBEROS                                                     -->
+        <!-- 5. EQUIPO DE BARBEROS                                                     -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelBarbers">
             <div class="panel-header-row">
@@ -325,12 +288,12 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 7. SERVICIOS Y AJUSTES                                                    -->
+        <!-- 6. SERVICIOS Y AJUSTES DE LA BARBERÍA                                     -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelSettings">
             <div class="panel-header-row">
                 <div class="panel-title-area">
-                    <h2>Configuración y Servicios</h2>
+                    <h2>Configuración de tu Barbería</h2>
                     <p class="text-muted">Ajusta los datos del local, moneda, servicios y precios.</p>
                 </div>
                 <div class="panel-controls-group">
@@ -340,25 +303,40 @@
                 </div>
             </div>
 
+            <!-- Enlace Permanente de esta Barbería -->
+            <div class="share-link-card" style="margin-bottom: 1.5rem;">
+                <div class="share-link-header">
+                    <div class="share-icon"><i class="fa-solid fa-link"></i></div>
+                    <div>
+                        <h3>Enlace Directo de esta Barbería</h3>
+                        <p class="text-muted">Copia este link para abrir directamente esta barbería desde cualquier dispositivo:</p>
+                    </div>
+                </div>
+                <div class="share-input-row">
+                    <input type="text" readonly id="shopDirectLinkInput" class="input-field link-input">
+                    <button class="btn btn-primary" onclick="copyDirectShopLink()"><i class="fa-regular fa-copy"></i> Copiar Link</button>
+                </div>
+            </div>
+
             <div class="settings-two-columns">
                 <!-- Datos del Negocio -->
                 <div class="app-card">
                     <div class="card-header">
-                        <h3><i class="fa-solid fa-store text-gold"></i> Datos de la Barbería</h3>
+                        <h3><i class="fa-solid fa-store text-gold"></i> Datos del Local</h3>
                     </div>
                     <div class="card-body">
                         <div class="form-group">
                             <label>Nombre de la Barbería:</label>
-                            <input type="text" id="settingShopName" class="input-field" value="Mi Barbería VIP">
+                            <input type="text" id="settingShopName" class="input-field" value="Mi Barbería">
                         </div>
                         <div class="form-group">
                             <label>Dirección:</label>
-                            <input type="text" id="settingShopAddress" class="input-field" value="Av. Principal 123">
+                            <input type="text" id="settingShopAddress" class="input-field" placeholder="Dirección del local">
                         </div>
                         <div class="form-row-2">
                             <div class="form-group">
                                 <label>Teléfono de WhatsApp:</label>
-                                <input type="tel" id="settingShopPhone" class="input-field" value="+5491122334455">
+                                <input type="tel" id="settingShopPhone" class="input-field" placeholder="+54 9 11...">
                             </div>
                             <div class="form-group">
                                 <label>Moneda ($ / ARS / MXN / EUR):</label>
