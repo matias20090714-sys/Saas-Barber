@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BarberFlow - Panel de Control y Gestión</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Barra Superior -->
+    <header class="app-topbar">
+        <div class="topbar-inner">
+            <div class="shop-branding" onclick="switchMainTab('settings')">
+                <div class="shop-logo-badge">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <div class="shop-info-text">
+                    <h1 class="shop-title-display" id="headerShopTitle">Mi Barbería</h1>
+                    <span class="shop-subtitle"><i class="fa-solid fa-gear"></i> Configuración</span>
+                </div>
+            </div>
+
+            <!-- Navegación de Herramientas -->
+            <nav class="main-tabs-nav">
+                <button class="nav-tab-btn active" data-tab="agenda" onclick="switchMainTab('agenda')">
+                    <i class="fa-solid fa-calendar-days"></i>
+                    <span>Agenda</span>
+                    <span class="badge-pill" id="badgePendingCount">0</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="booking-link" onclick="switchMainTab('booking-link')">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Link de Reservas</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="pos" onclick="switchMainTab('pos')">
+                    <i class="fa-solid fa-cash-register"></i>
+                    <span>Caja & POS</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="commissions" onclick="switchMainTab('commissions')">
+                    <i class="fa-solid fa-hand-holding-dollar"></i>
+                    <span>Comisiones</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="clients" onclick="switchMainTab('clients')">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Clientes</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="barbers" onclick="switchMainTab('barbers')">
+                    <i class="fa-solid fa-user-group"></i>
+                    <span>Equipo</span>
+                </button>
+                <button class="nav-tab-btn" data-tab="settings" onclick="switchMainTab('settings')">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>Servicios y Ajustes</span>
+                </button>
+            </nav>
+
+            <div class="topbar-actions">
+                <button class="btn btn-primary btn-sm" onclick="openNewWalkInModal()">
+                    <i class="fa-solid fa-plus"></i> + Nuevo Turno
+                </button>
+                <button class="btn-icon" onclick="exportDataBackup()" title="Descargar Respaldo (JSON)">
+                    <i class="fa-solid fa-download"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Área de Trabajo -->
+    <main class="app-workspace container">
+
+        <!-- ========================================================================= -->
+        <!-- 1. AGENDA EN VIVO                                                         -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel active" id="panelAgenda">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Agenda de Turnos</h2>
+                    <p class="text-muted">Turnos del día, asignación a barberos y cobro de servicios.</p>
+                </div>
+                <div class="panel-controls-group">
+                    <div class="date-navigator">
+                        <button class="btn-nav-date" onclick="changeAgendaDate(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                        <input type="date" id="agendaDatePicker" onchange="loadAgenda()">
+                        <button class="btn-nav-date" onclick="changeAgendaDate(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                    </div>
+                    <button class="btn btn-primary" onclick="openNewWalkInModal()">
+                        <i class="fa-solid fa-calendar-plus"></i> + Agendar Turno
+                    </button>
+                </div>
+            </div>
+
+            <!-- Resumen de Métricas -->
+            <div class="kpi-banner">
+                <div class="kpi-item">
+                    <div class="kpi-icon gold"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div>
+                        <span class="kpi-label">Turnos Hoy</span>
+                        <strong class="kpi-val" id="kpiTodayCount">0</strong>
+                    </div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-icon green"><i class="fa-solid fa-dollar-sign"></i></div>
+                    <div>
+                        <span class="kpi-label">Facturación Estimada</span>
+                        <strong class="kpi-val" id="kpiTodayRevenue">$0</strong>
+                    </div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-icon blue"><i class="fa-solid fa-user-check"></i></div>
+                    <div>
+                        <span class="kpi-label">Barberos Activos</span>
+                        <strong class="kpi-val" id="kpiActiveBarbers">0</strong>
+                    </div>
+                </div>
+                <div class="kpi-item">
+                    <div class="kpi-icon purple"><i class="fa-solid fa-clock"></i></div>
+                    <div>
+                        <span class="kpi-label">Próximo Turno</span>
+                        <strong class="kpi-val" id="kpiNextTime">--:--</strong>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filtro por Barbero -->
+            <div class="barbers-filter-row" id="agendaBarberFilters"></div>
+
+            <!-- Grilla de Turnos -->
+            <div class="appointments-board" id="agendaAppointmentsContainer"></div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 2. LINK DE RESERVAS ONLINE PARA CLIENTES                                  -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelBookingLink">
+            <div class="share-link-card">
+                <div class="share-link-header">
+                    <div class="share-icon"><i class="fa-solid fa-qrcode"></i></div>
+                    <div>
+                        <h3>Link Directo de Reservas</h3>
+                        <p class="text-muted">Este es el link que puedes colocar en tu Instagram, WhatsApp o redes sociales para que tus clientes agenden directamente.</p>
+                    </div>
+                </div>
+                <div class="share-input-row">
+                    <input type="text" readonly id="publicLinkDisplay" class="input-field link-input" value="https://barberflow.app/reservas">
+                    <button class="btn btn-primary" onclick="copyPublicBookingLink()"><i class="fa-regular fa-copy"></i> Copiar Link</button>
+                    <button class="btn btn-whatsapp" onclick="shareOnWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Compartir por WhatsApp</button>
+                </div>
+            </div>
+
+            <div class="app-card mt-4">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-circle-info text-gold"></i> Instrucciones de Uso</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="margin-bottom: 1rem;">
+                        1. Configura tus servicios y precios en la pestaña <strong>Servicios y Ajustes</strong>.<br>
+                        2. Agrega a los barberos de tu equipo en la pestaña <strong>Equipo</strong>.<br>
+                        3. Copia el link superior y compártelo. Todos los turnos que tus clientes reserven ingresarán automáticamente en tu <strong>Agenda</strong> en tiempo real.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 3. CAJA & PUNTO DE VENTA (POS)                                            -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelPos">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Caja & Cobros Diarios (POS)</h2>
+                    <p class="text-muted">Control de ingresos por servicios y productos, retiros de dinero y formas de pago.</p>
+                </div>
+                <div class="panel-controls-group">
+                    <button class="btn btn-secondary" onclick="openExpenseModal()">
+                        <i class="fa-solid fa-arrow-trend-down"></i> Registrar Gasto / Retiro
+                    </button>
+                    <button class="btn btn-primary" onclick="openQuickSaleModal()">
+                        <i class="fa-solid fa-cart-plus"></i> + Registrar Venta / Cobro
+                    </button>
+                </div>
+            </div>
+
+            <!-- Balances -->
+            <div class="pos-balance-grid">
+                <div class="pos-card total">
+                    <span class="pos-card-title">Balance Neto en Caja Hoy</span>
+                    <h2 class="pos-amount text-gold" id="posTotalToday">$0.00</h2>
+                    <small class="text-muted">Ingresos menos gastos</small>
+                </div>
+                <div class="pos-card">
+                    <span class="pos-card-title"><i class="fa-solid fa-money-bill-wave text-green"></i> Efectivo</span>
+                    <h3 class="pos-amount" id="posCashToday">$0.00</h3>
+                </div>
+                <div class="pos-card">
+                    <span class="pos-card-title"><i class="fa-solid fa-credit-card text-blue"></i> Tarjeta</span>
+                    <h3 class="pos-amount" id="posCardToday">$0.00</h3>
+                </div>
+                <div class="pos-card">
+                    <span class="pos-card-title"><i class="fa-solid fa-qrcode text-purple"></i> Transferencia / QR</span>
+                    <h3 class="pos-amount" id="posTransferToday">$0.00</h3>
+                </div>
+            </div>
+
+            <!-- Tabla de Movimientos -->
+            <div class="app-card table-card">
+                <div class="card-header">
+                    <h3>Movimientos de Caja</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Hora</th>
+                                <th>Concepto</th>
+                                <th>Cliente</th>
+                                <th>Barbero</th>
+                                <th>Método</th>
+                                <th>Monto</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="posTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 4. COMISIONES DE BARBEROS                                                 -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelCommissions">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Cálculo de Comisiones del Equipo</h2>
+                    <p class="text-muted">Desglose exacto de lo generado por cada barbero y el margen neto del local.</p>
+                </div>
+            </div>
+
+            <div class="commissions-staff-cards" id="commissionsGrid"></div>
+
+            <div class="app-card table-card mt-4">
+                <div class="card-header">
+                    <h3>Detalle de Cortes Realizados</h3>
+                </div>
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Fecha/Hora</th>
+                                <th>Barbero</th>
+                                <th>Servicio</th>
+                                <th>Precio Total</th>
+                                <th>% Comisión</th>
+                                <th>Pago a Barbero</th>
+                                <th>Ganancia Local</th>
+                            </tr>
+                        </thead>
+                        <tbody id="commissionsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 5. CLIENTES & CRM                                                         -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelClients">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Directorio de Clientes</h2>
+                    <p class="text-muted">Historial de visitas, notas de estilo/corte y contacto directo por WhatsApp.</p>
+                </div>
+                <div class="panel-controls-group">
+                    <div class="search-input-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="clientSearchInput" placeholder="Buscar por nombre o teléfono..." oninput="filterClientsList()">
+                    </div>
+                </div>
+            </div>
+
+            <div class="app-card table-card">
+                <div class="table-responsive">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>WhatsApp</th>
+                                <th>Visitas</th>
+                                <th>Total Invertido</th>
+                                <th>Última Visita</th>
+                                <th>Notas de Corte</th>
+                                <th>WhatsApp</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 6. EQUIPO DE BARBEROS                                                     -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelBarbers">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Equipo de Barberos</h2>
+                    <p class="text-muted">Gestiona a los barberos y ajusta su porcentaje de comisión.</p>
+                </div>
+                <div class="panel-controls-group">
+                    <button class="btn btn-primary" onclick="openAddBarberModal()">
+                        <i class="fa-solid fa-user-plus"></i> + Agregar Barbero
+                    </button>
+                </div>
+            </div>
+
+            <div class="barbers-management-grid" id="barbersManageContainer"></div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 7. SERVICIOS Y AJUSTES                                                    -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelSettings">
+            <div class="panel-header-row">
+                <div class="panel-title-area">
+                    <h2>Configuración y Servicios</h2>
+                    <p class="text-muted">Ajusta los datos del local, moneda, servicios y precios.</p>
+                </div>
+                <div class="panel-controls-group">
+                    <button class="btn btn-primary" onclick="saveShopSettings()">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-two-columns">
+                <!-- Datos del Negocio -->
+                <div class="app-card">
+                    <div class="card-header">
+                        <h3><i class="fa-solid fa-store text-gold"></i> Datos de la Barbería</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label>Nombre de la Barbería:</label>
+                            <input type="text" id="settingShopName" class="input-field" value="Mi Barbería VIP">
+                        </div>
+                        <div class="form-group">
+                            <label>Dirección:</label>
+                            <input type="text" id="settingShopAddress" class="input-field" value="Av. Principal 123">
+                        </div>
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label>Teléfono de WhatsApp:</label>
+                                <input type="tel" id="settingShopPhone" class="input-field" value="+5491122334455">
+                            </div>
+                            <div class="form-group">
+                                <label>Moneda ($ / ARS / MXN / EUR):</label>
+                                <input type="text" id="settingCurrency" class="input-field" value="$">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Lista de Servicios -->
+                <div class="app-card">
+                    <div class="card-header flex-between">
+                        <h3><i class="fa-solid fa-scissors text-gold"></i> Servicios & Precios</h3>
+                        <button class="btn btn-primary btn-sm" onclick="openAddServiceModal()">
+                            <i class="fa-solid fa-plus"></i> + Nuevo Servicio
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="services-list-editable" id="manageServicesList"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ========================================================================= -->
+    <!-- MODALES                                                                   -->
+    <!-- ========================================================================= -->
+
+    <!-- Modal: Turno Manual / Walk-In -->
+    <div class="modal-overlay" id="walkInModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-scissors text-gold"></i> Agendar Turno</h3>
+                <button class="btn-close" onclick="closeModal('walkInModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleWalkInSubmit(event)">
+                    <div class="form-group">
+                        <label>Nombre del Cliente:</label>
+                        <input type="text" id="walkInClientName" required placeholder="Nombre del cliente" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono (WhatsApp):</label>
+                        <input type="tel" id="walkInClientPhone" placeholder="+54 9 11..." class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Servicio:</label>
+                        <select id="walkInServiceSelect" class="input-field" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label>Barbero:</label>
+                        <select id="walkInBarberSelect" class="input-field" required></select>
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Fecha:</label>
+                            <input type="date" id="walkInDate" class="input-field" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Hora:</label>
+                            <input type="time" id="walkInTime" class="input-field" value="16:00" required>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fa-solid fa-check"></i> Guardar Turno
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Venta POS / Cobro -->
+    <div class="modal-overlay" id="quickSaleModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-cart-plus text-green"></i> Registrar Venta / Cobro</h3>
+                <button class="btn-close" onclick="closeModal('quickSaleModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleQuickSaleSubmit(event)">
+                    <div class="form-group">
+                        <label>Concepto / Producto:</label>
+                        <input type="text" id="saleConcept" required placeholder="Ej: Cera mate fijadora / Bebida" class="input-field">
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Monto:</label>
+                            <input type="number" id="saleAmount" step="0.5" required placeholder="10.00" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label>Método de Pago:</label>
+                            <select id="salePaymentMethod" class="input-field">
+                                <option value="Efectivo">Efectivo</option>
+                                <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                                <option value="Transferencia">Transferencia / QR</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Barbero (Opcional):</label>
+                        <select id="saleBarberSelect" class="input-field"></select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fa-solid fa-cash-register"></i> Registrar en Caja
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Barbero -->
+    <div class="modal-overlay" id="addBarberModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-plus text-gold"></i> Agregar Barbero</h3>
+                <button class="btn-close" onclick="closeModal('addBarberModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleAddBarberSubmit(event)">
+                    <div class="form-group">
+                        <label>Nombre y Apellido:</label>
+                        <input type="text" id="newBarberName" required placeholder="Ej: Lucas Martínez" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>Especialidad / Cargo:</label>
+                        <input type="text" id="newBarberSpecialty" placeholder="Ej: Fades y Barbas" class="input-field">
+                    </div>
+                    <div class="form-group">
+                        <label>% de Comisión para el barbero:</label>
+                        <input type="number" id="newBarberCommission" required value="50" min="0" max="100" class="input-field">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fa-solid fa-check"></i> Guardar Barbero
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal: Agregar Servicio -->
+    <div class="modal-overlay" id="addServiceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-scissors text-gold"></i> Agregar Servicio</h3>
+                <button class="btn-close" onclick="closeModal('addServiceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleAddServiceSubmit(event)">
+                    <div class="form-group">
+                        <label>Nombre del Servicio:</label>
+                        <input type="text" id="newServiceName" required placeholder="Ej: Corte + Barba Deluxe" class="input-field">
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Precio:</label>
+                            <input type="number" id="newServicePrice" required step="0.5" placeholder="15" class="input-field">
+                        </div>
+                        <div class="form-group">
+                            <label>Duración (minutos):</label>
+                            <input type="number" id="newServiceDuration" required value="40" step="5" class="input-field">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción:</label>
+                        <input type="text" id="newServiceDesc" placeholder="Detalles del corte..." class="input-field">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fa-solid fa-check"></i> Guardar Servicio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
