@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BARBERFLOW - MULTI-TENANT REAL STORE
+   BARBERFLOW - MULTI-TENANT REAL STORE (CON VALIDACIÓN DE ESTADO DE PAGO)
    ========================================================================== */
 
 const STORAGE_VERSION = 'BARBERFLOW_PROD_V3';
@@ -17,6 +17,16 @@ function getStorageKey(shopId) {
     return `${STORAGE_VERSION}_${shopId || getShopIdFromUrl()}`;
 }
 
+function isShopBlocked(shopId) {
+    try {
+        const id = shopId || getShopIdFromUrl();
+        const blockedMap = JSON.parse(localStorage.getItem('BARBERFLOW_BLOCKED_SHOPS') || '{}');
+        return blockedMap[id] === true;
+    } catch (e) {
+        return false;
+    }
+}
+
 const CLEAN_SHOP_TEMPLATE = {
     shop: {
         id: 'mi-barberia',
@@ -24,7 +34,7 @@ const CLEAN_SHOP_TEMPLATE = {
         address: '',
         phone: '',
         currency: '$',
-        photo: '' // Foto / logo en Base64 o URL
+        photo: ''
     },
     services: [
         { id: 'srv-1', name: 'Corte de Cabello', duration: 30, price: 10, desc: 'Corte general' },

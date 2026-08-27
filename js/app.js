@@ -1,13 +1,34 @@
-/* ==========================================================================
-   BARBERFLOW - CONTROLADOR DE HERRAMIENTAS OPERATIVAS (100% REAL)
-   ========================================================================== */
-
-let currentAgendaDate = new Date().toISOString().split('T')[0];
-let currentBarberFilter = 'all';
-
 document.addEventListener('DOMContentLoaded', () => {
+    if (isShopBlocked()) {
+        renderBlockedScreen();
+        return;
+    }
     initApp();
 });
+
+function renderBlockedScreen() {
+    const store = getStore();
+    document.body.innerHTML = `
+        <div style="min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem; background: #06090e; font-family: 'Outfit', sans-serif;">
+            <div style="background: #121824; border: 1px solid #ef4444; border-radius: 16px; padding: 2.5rem; max-width: 480px; text-align: center; box-shadow: 0 20px 50px rgba(0,0,0,0.8);">
+                <div style="width: 70px; height: 70px; background: rgba(239, 68, 68, 0.15); color: #ef4444; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 2rem; margin-bottom: 1.2rem;">
+                    <i class="fa-solid fa-lock"></i>
+                </div>
+                <h2 style="color: #ffffff; margin-bottom: 0.5rem; font-size: 1.5rem;">Acceso Temporalmente Suspendido</h2>
+                <p style="color: #94a3b8; font-size: 0.92rem; margin-bottom: 1.5rem; line-height: 1.6;">
+                    El acceso a la plataforma para <strong>${store.shop.name}</strong> se encuentra pausado por mantenimiento o vencimiento de la suscripción mensual.
+                </p>
+                <div style="background: #090e18; border: 1px dashed #2c3c56; border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <p style="color: #f59e0b; font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem;">¿Eres el dueño del local?</p>
+                    <p style="color: #94a3b8; font-size: 0.8rem;">Contacta a tu asesor para reactivar tu cuenta de inmediato.</p>
+                </div>
+                <button onclick="location.reload()" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: #06090e; font-weight: 800; border: none; padding: 0.8rem 1.6rem; border-radius: 10px; cursor: pointer; width: 100%;">
+                    Reintentar Conexión
+                </button>
+            </div>
+        </div>
+    `;
+}
 
 function initApp() {
     loadShopBranding();
