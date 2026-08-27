@@ -332,7 +332,7 @@
             <div class="panel-header-row">
                 <div class="panel-title-area">
                     <h2>Configuración de tu Barbería</h2>
-                    <p class="text-muted">Ajusta los datos del local, logo/foto, moneda, servicios y precios.</p>
+                    <p class="text-muted">Edita los precios de tus servicios, moneda, foto y datos del local.</p>
                 </div>
                 <div class="panel-controls-group">
                     <button class="btn btn-primary" onclick="saveShopSettings()">
@@ -382,17 +382,20 @@
                                 <input type="tel" id="settingShopPhone" class="input-field" placeholder="+54 9 11...">
                             </div>
                             <div class="form-group">
-                                <label>Moneda ($ / ARS / MXN / EUR):</label>
+                                <label>Símbolo de Moneda ($ / ARS / MXN / EUR / COP):</label>
                                 <input type="text" id="settingCurrency" class="input-field" value="$">
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Lista de Servicios -->
+                <!-- Lista de Servicios y Precios Editables -->
                 <div class="app-card">
                     <div class="card-header flex-between">
-                        <h3><i class="fa-solid fa-scissors text-gold"></i> Servicios & Precios</h3>
+                        <div>
+                            <h3><i class="fa-solid fa-scissors text-gold"></i> Precios de Servicios</h3>
+                            <small class="text-muted">Haz clic en el lápiz para editar cualquier precio.</small>
+                        </div>
                         <button class="btn btn-primary btn-sm" onclick="openAddServiceModal()">
                             <i class="fa-solid fa-plus"></i> + Nuevo Servicio
                         </button>
@@ -431,6 +434,42 @@
     <!-- ========================================================================= -->
     <!-- MODALES                                                                   -->
     <!-- ========================================================================= -->
+
+    <!-- Modal: Editar Precio y Datos de Servicio -->
+    <div class="modal-overlay" id="editServiceModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-pen text-gold"></i> Modificar Precio / Servicio</h3>
+                <button class="btn-close" onclick="closeModal('editServiceModal')">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form onsubmit="handleEditServiceSubmit(event)">
+                    <input type="hidden" id="editServiceId">
+                    <div class="form-group">
+                        <label>Nombre del Servicio:</label>
+                        <input type="text" id="editServiceName" required class="input-field">
+                    </div>
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label>Precio:</label>
+                            <input type="number" id="editServicePrice" required step="0.5" class="input-field" style="font-size:1.1rem; font-weight:700; color:var(--green);">
+                        </div>
+                        <div class="form-group">
+                            <label>Duración (minutos):</label>
+                            <input type="number" id="editServiceDuration" required step="5" class="input-field">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Descripción / Detalle (Opcional):</label>
+                        <input type="text" id="editServiceDesc" class="input-field">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-large">
+                        <i class="fa-solid fa-floppy-disk"></i> Guardar Nuevo Precio
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
 
     <!-- Modal: Turno Manual / Walk-In -->
     <div class="modal-overlay" id="walkInModal">

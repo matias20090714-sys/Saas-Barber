@@ -1,3 +1,10 @@
+/* ==========================================================================
+   BARBERFLOW - CONTROLADOR DE HERRAMIENTAS OPERATIVAS (100% REAL)
+   ========================================================================== */
+
+let currentAgendaDate = new Date().toISOString().split('T')[0];
+let currentBarberFilter = 'all';
+
 document.addEventListener('DOMContentLoaded', () => {
     if (isShopBlocked()) {
         renderBlockedScreen();
@@ -118,7 +125,6 @@ function loadShopBranding() {
     const publicBookingInput = document.getElementById('publicBookingLinkInput');
     if (publicBookingInput) publicBookingInput.value = bookingUrl;
 
-    // Render avatar photo if set
     renderShopPhotoAvatar(store.shop.photo);
 }
 
@@ -179,7 +185,8 @@ function saveShopSettings() {
 
     saveStore(store);
     loadShopBranding();
-    showToast('¡Ajustes guardados!', 'success');
+    loadServicesManage();
+    showToast('¡Ajustes y moneda guardados!', 'success');
 }
 
 function copyPublicBookingLink() {
@@ -634,7 +641,7 @@ function deleteBarber(id) {
 }
 
 /* ==========================================================================
-   6. SERVICIOS & PRECIOS
+   6. SERVICIOS & PRECIOS (100% EDITABLE POR CADA BARBERÍA)
    ========================================================================== */
 function loadServicesManage() {
     const store = getStore();
@@ -650,23 +657,66 @@ function loadServicesManage() {
     container.innerHTML = store.services.map(s => `
         <div class="service-item-row">
             <div>
-                <strong>${s.name}</strong>
-                <span class="text-muted" style="display:block; font-size:0.78rem;">${s.duration} min ${s.desc ? '- ' + s.desc : ''}</span>
+                <strong style="font-size:1.05rem;">${s.name}</strong>
+                <span class="text-muted" style="display:block; font-size:0.82rem;">${s.duration} min ${s.desc ? '- ' + s.desc : ''}</span>
             </div>
             <div style="display:flex; align-items:center; gap:0.8rem;">
-                <strong class="text-green">${curr}${s.price}</strong>
-                <button class="btn-icon" style="width:32px;height:32px;" onclick="deleteService('${s.id}')"><i class="fa-solid fa-trash text-muted"></i></button>
+                <strong class="text-green" style="font-size:1.2rem; font-weight:800;">${curr}${s.price}</strong>
+                <button class="btn btn-secondary btn-sm" onclick="openEditServiceModal('${s.id}')" title="Modificar Precio / Datos">
+                    <i class="fa-solid fa-pen text-gold"></i> Editar
+                </button>
+                <button class="btn-icon" style="width:32px;height:32px;" onclick="deleteService('${s.id}')" title="Eliminar Servicio">
+                    <i class="fa-solid fa-trash text-muted"></i>
+                </button>
             </div>
         </div>
     `).join('');
 }
 
+function openEditServiceModal(id) {
+    const store = getStore();
+    const srv = (store.services || []).find(s => s.id === id);
+    if (!srv) return;
+
+    document.getElementById('editServiceId').value = srv.id;
+    document.getElementById('editServiceName').value = srv.name;
+    document.getElementById('editServicePrice').value = srv.price;
+    document.getElementById('editServiceDuration').value = srv.duration || 30;
+    document.getElementById('editServiceDesc').value = srv.desc || '';
+
+    openModal('editServiceModal');
+}
+
+function handleEditServiceSubmit(e) {
+    e.preventDefault();
+    const id = document.getElementById('editServiceId').value;
+    const name = document.getElementById('editServiceName').value.trim();
+    const price = parseFloat(document.getElementById('editServicePrice').value);
+    const duration = parseInt(document.getElementById('editServiceDuration').value);
+    const desc = document.getElementById('editServiceDesc').value.trim();
+
+    const store = getStore();
+    const srv = (store.services || []).find(s => s.id === id);
+    if (srv) {
+        srv.name = name;
+        srv.price = price;
+        srv.duration = duration;
+        srv.desc = desc;
+        saveStore(store);
+        closeModal('editServiceModal');
+        loadServicesManage();
+        showToast(`Precio actualizado para "${name}"`, 'success');
+    }
+}
+
 function deleteService(id) {
     const store = getStore();
-    store.services = (store.services || []).filter(s => s.id !== id);
-    saveStore(store);
-    loadServicesManage();
-    showToast('Servicio eliminado', 'info');
+    if (confirm('¿Eliminar este servicio?')) {
+        store.services = (store.services || []).filter(s => s.id !== id);
+        saveStore(store);
+        loadServicesManage();
+        showToast('Servicio eliminado', 'info');
+    }
 }
 
 /* ==========================================================================
@@ -730,7 +780,6 @@ function handleWalkInSubmit(e) {
     if (!store.appointments) store.appointments = [];
     store.appointments.push(newApp);
 
-    // Agregar en CRM
     if (!store.clients) store.clients = [];
     const cli = store.clients.find(c => (phone && c.phone === phone) || c.name === name);
     if (cli) {
