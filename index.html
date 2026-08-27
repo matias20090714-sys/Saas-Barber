@@ -402,6 +402,28 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Respaldo y Recuperación de Datos -->
+            <div class="app-card mt-4">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-shield-halved text-gold"></i> Copia de Seguridad y Respaldo</h3>
+                </div>
+                <div class="card-body" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                    <div>
+                        <strong>Respaldar la información de tu barbería</strong>
+                        <p class="text-muted" style="font-size:0.85rem;">Descarga una copia de todos tus turnos y clientes, o restáurala si cambias de teléfono o computadora.</p>
+                    </div>
+                    <div style="display:flex; gap:0.6rem; align-items:center;">
+                        <button class="btn btn-secondary" onclick="exportDataBackup()">
+                            <i class="fa-solid fa-download"></i> Descargar Respaldo
+                        </button>
+                        <label class="btn btn-secondary" style="cursor:pointer;">
+                            <i class="fa-solid fa-upload"></i> Restaurar Respaldo
+                            <input type="file" accept=".json" onchange="importDataBackup(event)" style="display:none;">
+                        </label>
+                    </div>
+                </div>
+            </div>
         </section>
 
     </main>

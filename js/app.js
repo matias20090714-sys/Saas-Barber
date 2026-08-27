@@ -188,6 +188,28 @@ function exportDataBackup() {
     showToast('Respaldo descargado', 'success');
 }
 
+function importDataBackup(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = JSON.parse(e.target.result);
+            if (!data.shop || !data.services) {
+                alert('El archivo no contiene un respaldo válido de BarberFlow.');
+                return;
+            }
+            saveStore(data);
+            initApp();
+            showToast('¡Copia de seguridad restaurada con éxito!', 'success');
+        } catch (err) {
+            alert('Error al leer el archivo de respaldo.');
+        }
+    };
+    reader.readAsText(file);
+}
+
 /* ==========================================================================
    1. AGENDA EN VIVO
    ========================================================================== */
