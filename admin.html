@@ -3,293 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel Maestro - Control de Suscripciones</title>
+    <title>Administración de Barberías</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Font Awesome Icons -->
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- CSS -->
+    <!-- Stylesheet -->
     <link rel="stylesheet" href="css/styles.css">
     <style>
-        .admin-login-screen {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 1.5rem;
+        .admin-page-container {
+            max-width: 900px;
+            margin: 2.5rem auto 4rem;
+            padding: 0 1.2rem;
         }
-        .admin-login-card {
+        .admin-login-box {
+            max-width: 400px;
+            margin: 4rem auto;
             background: var(--bg-card);
             border: 1px solid var(--border-light);
             border-radius: var(--radius-lg);
             padding: 2.5rem;
-            width: 100%;
-            max-width: 420px;
             text-align: center;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.85);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.7);
         }
-        .admin-avatar-lock {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, var(--gold), #d97706);
-            border-radius: 50%;
-            color: #06090e;
-            display: inline-flex;
+        .shops-list-clean {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        .shop-row-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1.2rem 1.5rem;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            font-size: 2rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 0 25px var(--gold-glow);
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: var(--transition);
         }
-        .admin-dashboard {
-            display: none;
+        .shop-row-card:hover {
+            border-color: var(--border-light);
         }
-        .status-toggle-btn {
-            padding: 0.4rem 0.9rem;
-            border-radius: var(--radius-full);
+        .shop-row-card.is-blocked {
+            border-left: 4px solid var(--red);
+            opacity: 0.85;
+        }
+        .shop-row-card.is-active {
+            border-left: 4px solid var(--green);
+        }
+        .btn-status-toggle {
+            padding: 0.55rem 1.1rem;
+            font-size: 0.85rem;
             font-weight: 700;
-            font-size: 0.82rem;
+            border-radius: var(--radius-sm);
             border: none;
             cursor: pointer;
-            transition: var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
+            transition: var(--transition);
         }
-        .status-toggle-active {
+        .btn-status-toggle.active {
             background: rgba(16, 185, 129, 0.2);
             color: var(--green);
             border: 1px solid var(--green);
         }
-        .status-toggle-blocked {
+        .btn-status-toggle.active:hover {
             background: rgba(239, 68, 68, 0.2);
+            color: var(--red);
+            border-color: var(--red);
+        }
+        .btn-status-toggle.blocked {
+            background: rgba(239, 68, 68, 0.25);
             color: var(--red);
             border: 1px solid var(--red);
         }
-        .admin-kpi-banner {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-            gap: 1.4rem;
-            margin-bottom: 2rem;
+        .btn-status-toggle.blocked:hover {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--green);
+            border-color: var(--green);
         }
     </style>
 </head>
 <body class="dark-theme">
 
-    <!-- PANTALLA DE ACCESO PROTEGIDO (SOLO EL DUEÑO) -->
-    <div class="admin-login-screen" id="adminLoginScreen">
-        <div class="admin-login-card">
-            <div class="admin-avatar-lock">
-                <i class="fa-solid fa-user-shield"></i>
+    <!-- PANTALLA DE ACCESO CON CLAVE -->
+    <div id="loginSection" class="admin-login-box">
+        <div style="width:60px;height:60px;background:var(--gold);color:#06090e;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;margin-bottom:1.2rem;">
+            <i class="fa-solid fa-lock"></i>
+        </div>
+        <h2 style="font-size: 1.4rem; margin-bottom: 0.4rem;">Acceso Administrador</h2>
+        <p class="text-muted" style="font-size: 0.85rem; margin-bottom: 1.5rem;">Ingresa tu clave maestra para gestionar tus barberías.</p>
+        
+        <form onsubmit="doLogin(event)">
+            <div class="form-group">
+                <input type="password" id="adminPassInput" required placeholder="Ingresa tu clave..." class="input-field" style="text-align:center; font-size:1.1rem; letter-spacing:2px;">
             </div>
-            <h2 style="font-size: 1.6rem; margin-bottom: 0.4rem;">Panel Super Admin</h2>
-            <p class="text-muted" style="margin-bottom: 1.8rem; font-size: 0.88rem;">Acceso restringido únicamente para el propietario del SaaS.</p>
-            
-            <form onsubmit="handleAdminLogin(event)">
-                <div class="form-group" style="text-align: left;">
-                    <label>Contraseña Maestra:</label>
-                    <input type="password" id="adminPasswordInput" required placeholder="Ingresa tu clave maestra..." class="input-field" style="font-size: 1.1rem; text-align: center; letter-spacing: 2px;">
-                </div>
-                <button type="submit" class="btn btn-primary btn-block btn-large mt-4">
-                    <i class="fa-solid fa-unlock-keyhole"></i> Acceder al Panel
-                </button>
-            </form>
-            <div id="loginErrorMsg" class="text-red mt-2" style="display:none; font-size:0.85rem; font-weight:600;">
-                <i class="fa-solid fa-circle-exclamation"></i> Contraseña incorrecta
-            </div>
+            <button type="submit" class="btn btn-primary btn-block btn-large">
+                <i class="fa-solid fa-arrow-right"></i> Entrar
+            </button>
+        </form>
+        <div id="errorMsg" class="text-red mt-2" style="display:none; font-size:0.85rem; font-weight:600;">
+            Contraseña incorrecta
         </div>
     </div>
 
-    <!-- PANEL PRINCIPAL DE CONTROL DE TODAS LAS BARBERÍAS -->
-    <div class="admin-dashboard" id="adminDashboard">
+    <!-- PANEL PRINCIPAL SIMPLE -->
+    <div id="mainSection" class="admin-page-container" style="display:none;">
         
-        <!-- Header -->
-        <header class="app-topbar">
-            <div class="topbar-inner">
-                <div class="shop-branding">
-                    <div class="shop-logo-badge">
-                        <i class="fa-solid fa-crown"></i>
-                    </div>
-                    <div>
-                        <h1 class="shop-title-display">Super Admin SaaS</h1>
-                        <span class="shop-subtitle">Control Central de Barberías y Cobros</span>
-                    </div>
-                </div>
-                <div class="topbar-actions">
-                    <button class="btn btn-primary btn-sm" onclick="openNewShopModal()">
-                        <i class="fa-solid fa-plus"></i> + Alta Nueva Barbería
-                    </button>
-                    <button class="btn btn-secondary btn-sm" onclick="adminLogout()">
-                        <i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión
-                    </button>
-                </div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.8rem; flex-wrap:wrap; gap:1rem;">
+            <div>
+                <h1 style="font-size: 1.6rem;">Mis Barberías Clientes</h1>
+                <p class="text-muted" style="font-size: 0.88rem;">Agrega nuevas barberías y controla su acceso si no abonan la cuota.</p>
             </div>
-        </header>
-
-        <!-- Workspace -->
-        <main class="container mt-4">
-            
-            <!-- Métricas Financieras Globales -->
-            <div class="admin-kpi-banner">
-                <div class="kpi-item">
-                    <div class="kpi-icon gold"><i class="fa-solid fa-store"></i></div>
-                    <div>
-                        <span class="kpi-label">Barberías Totales</span>
-                        <strong class="kpi-val" id="adminTotalShops">0</strong>
-                    </div>
-                </div>
-                <div class="kpi-item">
-                    <div class="kpi-icon green"><i class="fa-solid fa-circle-check"></i></div>
-                    <div>
-                        <span class="kpi-label">Activas (Al día)</span>
-                        <strong class="kpi-val text-green" id="adminActiveShops">0</strong>
-                    </div>
-                </div>
-                <div class="kpi-item">
-                    <div class="kpi-icon gold"><i class="fa-solid fa-sack-dollar"></i></div>
-                    <div>
-                        <span class="kpi-label">Recaudación Mensual Estimada</span>
-                        <strong class="kpi-val text-gold" id="adminTotalRevenue">$0 USD</strong>
-                    </div>
-                </div>
-                <div class="kpi-item">
-                    <div class="kpi-icon" style="background: rgba(239, 68, 68, 0.15); color: var(--red);"><i class="fa-solid fa-lock"></i></div>
-                    <div>
-                        <span class="kpi-label">Bloqueadas (Sin Pagar)</span>
-                        <strong class="kpi-val text-red" id="adminBlockedShops">0</strong>
-                    </div>
-                </div>
+            <div style="display:flex; gap:0.6rem;">
+                <button class="btn btn-primary" onclick="openModal('addShopModal')">
+                    <i class="fa-solid fa-plus"></i> + Nueva Barbería
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="doLogout()">
+                    <i class="fa-solid fa-right-from-bracket"></i> Salir
+                </button>
             </div>
+        </div>
 
-            <!-- Tabla de Gestión de Barberías -->
-            <div class="app-card">
-                <div class="card-header flex-between">
-                    <div>
-                        <h3>Listado de Barberías Clientes</h3>
-                        <p class="text-muted">Administra el acceso de cada barbería y bloquea a las que no hayan abonado su cuota.</p>
-                    </div>
-                    <button class="btn btn-primary btn-sm" onclick="openNewShopModal()">
-                        <i class="fa-solid fa-user-plus"></i> Registrar Barbería
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="data-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre del Local</th>
-                                <th>Identificador (Link)</th>
-                                <th>Teléfono Contacto</th>
-                                <th>Cuota Mensual</th>
-                                <th>Estado de Acceso</th>
-                                <th>Acciones & Enlaces</th>
-                            </tr>
-                        </thead>
-                        <tbody id="adminShopsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-        </main>
+        <!-- Lista de Barberías -->
+        <div class="shops-list-clean" id="shopsListContainer"></div>
 
     </div>
 
-    <!-- Modal: Alta de Nueva Barbería -->
-    <div class="modal-overlay" id="newShopModal">
+    <!-- MODAL: AGREGAR BARBERÍA -->
+    <div class="modal-overlay" id="addShopModal">
         <div class="modal-card">
             <div class="modal-header">
-                <h3><i class="fa-solid fa-store text-gold"></i> Dar de Alta Nueva Barbería</h3>
-                <button class="btn-close" onclick="closeModal('newShopModal')">&times;</button>
+                <h3><i class="fa-solid fa-store text-gold"></i> Agregar Nueva Barbería</h3>
+                <button class="btn-close" onclick="closeModal('addShopModal')">&times;</button>
             </div>
             <div class="modal-body">
-                <form onsubmit="handleCreateShopSubmit(event)">
+                <form onsubmit="handleCreateShop(event)">
                     <div class="form-group">
                         <label>Nombre de la Barbería:</label>
-                        <input type="text" id="newShopNameInput" required placeholder="Ej: Barbería Don Carlos" class="input-field">
+                        <input type="text" id="shopNameInput" required placeholder="Ej: Barbería Elite" class="input-field">
                     </div>
-                    <div class="form-group">
-                        <label>Slug / Identificador URL (Sin espacios ni acentos):</label>
-                        <input type="text" id="newShopSlugInput" required placeholder="Ej: don-carlos" class="input-field">
-                    </div>
-                    <div class="form-row-2">
-                        <div class="form-group">
-                            <label>Teléfono del Dueño (WhatsApp):</label>
-                            <input type="tel" id="newShopPhoneInput" placeholder="+54 9 11 2345 6789" class="input-field">
-                        </div>
-                        <div class="form-group">
-                            <label>Precio Mensual Acordado:</label>
-                            <input type="number" id="newShopFeeInput" value="20" required class="input-field">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block btn-large">
-                        <i class="fa-solid fa-check"></i> Registrar y Generar Links
+                    <button type="submit" class="btn btn-primary btn-block btn-large mt-4">
+                        <i class="fa-solid fa-check"></i> Crear Barbería y Generar Link
                     </button>
                 </form>
             </div>
         </div>
     </div>
 
-    <!-- Toasts -->
+    <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
 
     <script src="js/data.js"></script>
     <script>
-        const MASTER_KEY_STORAGE = 'BARBERFLOW_SUPERADMIN_SHOPS_V1';
-        const DEFAULT_MASTER_PIN = 'admin123'; // Contraseña por defecto
+        const STORAGE_KEY = 'BARBERFLOW_SUPERADMIN_SHOPS_V1';
+        const DEFAULT_PASS = 'admin123';
 
         function checkAuth() {
-            const isAuth = sessionStorage.getItem('BARBERFLOW_ADMIN_LOGGED') === 'true';
-            if (isAuth) {
-                document.getElementById('adminLoginScreen').style.display = 'none';
-                document.getElementById('adminDashboard').style.display = 'block';
-                loadAdminDashboard();
+            if (sessionStorage.getItem('ADMIN_AUTH') === 'true') {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('mainSection').style.display = 'block';
+                renderShops();
             } else {
-                document.getElementById('adminLoginScreen').style.display = 'flex';
-                document.getElementById('adminDashboard').style.display = 'none';
+                document.getElementById('loginSection').style.display = 'block';
+                document.getElementById('mainSection').style.display = 'none';
             }
         }
 
-        function handleAdminLogin(e) {
+        function doLogin(e) {
             e.preventDefault();
-            const pass = document.getElementById('adminPasswordInput').value.trim();
-            const savedPin = localStorage.getItem('BARBERFLOW_MASTER_PIN') || DEFAULT_MASTER_PIN;
-
-            if (pass === savedPin) {
-                sessionStorage.setItem('BARBERFLOW_ADMIN_LOGGED', 'true');
+            const pass = document.getElementById('adminPassInput').value.trim();
+            if (pass === DEFAULT_PASS) {
+                sessionStorage.setItem('ADMIN_AUTH', 'true');
                 checkAuth();
             } else {
-                document.getElementById('loginErrorMsg').style.display = 'block';
+                document.getElementById('errorMsg').style.display = 'block';
             }
         }
 
-        function adminLogout() {
-            sessionStorage.removeItem('BARBERFLOW_ADMIN_LOGGED');
+        function doLogout() {
+            sessionStorage.removeItem('ADMIN_AUTH');
             location.reload();
         }
 
-        function getShopsRegistry() {
-            const local = localStorage.getItem(MASTER_KEY_STORAGE);
-            if (!local) {
-                const initial = [
-                    {
-                        id: 'mi-barberia',
-                        name: 'Mi Barbería',
-                        phone: '',
-                        fee: 20,
-                        status: 'active', // 'active' o 'blocked'
-                        createdAt: new Date().toISOString().split('T')[0]
-                    }
-                ];
-                saveShopsRegistry(initial);
+        function getShops() {
+            const data = localStorage.getItem(STORAGE_KEY);
+            if (!data) {
+                const initial = [{ id: 'mi-barberia', name: 'Mi Barbería', status: 'active' }];
+                saveShops(initial);
                 return initial;
             }
-            return JSON.parse(local);
+            return JSON.parse(data);
         }
 
-        function saveShopsRegistry(list) {
-            localStorage.setItem(MASTER_KEY_STORAGE, JSON.stringify(list));
-            // Actualizar estado de bloqueo en la lista maestra pública
+        function saveShops(list) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+            // Actualizar mapa de bloqueo global
             const blockedMap = {};
             list.forEach(s => {
                 blockedMap[s.id] = (s.status === 'blocked');
@@ -297,133 +212,118 @@
             localStorage.setItem('BARBERFLOW_BLOCKED_SHOPS', JSON.stringify(blockedMap));
         }
 
-        function loadAdminDashboard() {
-            const shops = getShopsRegistry();
-            const tbody = document.getElementById('adminShopsTableBody');
+        function renderShops() {
+            const list = getShops();
+            const container = document.getElementById('shopsListContainer');
 
-            const total = shops.length;
-            const active = shops.filter(s => s.status === 'active').length;
-            const blocked = shops.filter(s => s.status === 'blocked').length;
-            const revenue = active * 20;
+            if (list.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:3rem; background:var(--bg-card); border-radius:var(--radius-md); border:1px dashed var(--border-color);">
+                        <p class="text-muted">No tienes barberías agregadas aún.</p>
+                        <button class="btn btn-primary mt-2" onclick="openModal('addShopModal')">+ Agregar tu primera barbería</button>
+                    </div>
+                `;
+                return;
+            }
 
-            document.getElementById('adminTotalShops').textContent = total;
-            document.getElementById('adminActiveShops').textContent = active;
-            document.getElementById('adminBlockedShops').textContent = blocked;
-            document.getElementById('adminTotalRevenue').textContent = `$${revenue} USD`;
+            const origin = window.location.origin;
+            const path = window.location.pathname.replace('admin.html', '');
+            const base = `${origin}${path}`;
 
-            const baseUrl = window.location.href.split('admin.html')[0];
-
-            tbody.innerHTML = shops.map(shop => {
+            container.innerHTML = list.map(shop => {
                 const isBlocked = shop.status === 'blocked';
-                const panelUrl = `${baseUrl}?shop=${shop.id}`;
-                const bookingUrl = `${baseUrl}booking.html?shop=${shop.id}`;
+                const link = `${base}?shop=${shop.id}`;
 
                 return `
-                    <tr>
-                        <td>
-                            <strong style="font-size:1rem; display:block;">${shop.name}</strong>
-                            <small class="text-muted">Alta: ${shop.createdAt || '-'}</small>
-                        </td>
-                        <td>
-                            <span class="status-badge status-Pendiente">?shop=${shop.id}</span>
-                        </td>
-                        <td>${shop.phone ? `<a href="https://wa.me/${shop.phone.replace(/[^0-9]/g, '')}" target="_blank" style="color:var(--green); text-decoration:none;"><i class="fa-brands fa-whatsapp"></i> ${shop.phone}</a>` : '-'}</td>
-                        <td><strong class="text-gold">$${shop.fee || 20} USD/mes</strong></td>
-                        <td>
-                            <button class="status-toggle-btn ${isBlocked ? 'status-toggle-blocked' : 'status-toggle-active'}" onclick="toggleShopStatus('${shop.id}')">
-                                <i class="fa-solid ${isBlocked ? 'fa-lock' : 'fa-check'}"></i>
-                                ${isBlocked ? 'BLOQUEADA' : 'ACTIVA'}
+                    <div class="shop-row-card ${isBlocked ? 'is-blocked' : 'is-active'}">
+                        <div>
+                            <h3 style="font-size: 1.15rem; margin-bottom: 0.2rem;">${shop.name}</h3>
+                            <span class="text-muted" style="font-size: 0.8rem;">ID: <code>${shop.id}</code></span>
+                        </div>
+
+                        <div style="display:flex; align-items:center; gap:0.8rem; flex-wrap:wrap;">
+                            <button class="btn btn-secondary btn-sm" onclick="copyLink('${link}')">
+                                <i class="fa-regular fa-copy"></i> Copiar Link para el Barbero
                             </button>
-                        </td>
-                        <td>
-                            <div style="display:flex; gap:0.4rem; align-items:center;">
-                                <button class="btn btn-secondary btn-sm" title="Copiar Link del Panel para el Barbero" onclick="copyLink('${panelUrl}', 'Link del Panel copiado')">
-                                    <i class="fa-solid fa-copy"></i> Panel
-                                </button>
-                                <button class="btn btn-secondary btn-sm" title="Copiar Link de Turnos para Clientes" onclick="copyLink('${bookingUrl}', 'Link de Clientes copiado')">
-                                    <i class="fa-solid fa-link"></i> Turnos
-                                </button>
-                                <button class="btn-icon" title="Eliminar Barbería" onclick="deleteShop('${shop.id}')">
-                                    <i class="fa-solid fa-trash text-muted"></i>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
+
+                            <button class="btn-status-toggle ${isBlocked ? 'blocked' : 'active'}" onclick="toggleStatus('${shop.id}')" title="Haz clic para cambiar el estado">
+                                <i class="fa-solid ${isBlocked ? 'fa-lock' : 'fa-check'}"></i>
+                                ${isBlocked ? 'BLOQUEADA (Sin acceso)' : 'ACTIVA (Con acceso)'}
+                            </button>
+
+                            <button class="btn-icon" title="Eliminar Barbería" onclick="removeShop('${shop.id}')">
+                                <i class="fa-solid fa-trash text-muted"></i>
+                            </button>
+                        </div>
+                    </div>
                 `;
             }).join('');
         }
 
-        function toggleShopStatus(shopId) {
-            const shops = getShopsRegistry();
-            const shop = shops.find(s => s.id === shopId);
+        function toggleStatus(shopId) {
+            const list = getShops();
+            const shop = list.find(s => s.id === shopId);
             if (shop) {
                 shop.status = (shop.status === 'active') ? 'blocked' : 'active';
-                saveShopsRegistry(shops);
-                loadAdminDashboard();
-                showToast(shop.status === 'blocked' ? `Barbería ${shop.name} bloqueada por falta de pago` : `Barbería ${shop.name} activada con éxito`, shop.status === 'blocked' ? 'info' : 'success');
+                saveShops(list);
+                renderShops();
+                showToast(shop.status === 'blocked' ? `Barbería ${shop.name} bloqueada` : `Barbería ${shop.name} activada`);
             }
         }
 
-        function copyLink(url, msg) {
+        function copyLink(url) {
             navigator.clipboard.writeText(url);
-            showToast(msg, 'success');
+            showToast('¡Link copiado al portapapeles!');
         }
 
-        function deleteShop(shopId) {
-            if (confirm('¿Estás seguro de eliminar esta barbería del sistema?')) {
-                let shops = getShopsRegistry();
-                shops = shops.filter(s => s.id !== shopId);
-                saveShopsRegistry(shops);
-                loadAdminDashboard();
-                showToast('Barbería eliminada', 'info');
+        function removeShop(shopId) {
+            if (confirm('¿Eliminar esta barbería?')) {
+                let list = getShops();
+                list = list.filter(s => s.id !== shopId);
+                saveShops(list);
+                renderShops();
+                showToast('Barbería eliminada');
             }
         }
 
-        function openNewShopModal() {
-            document.getElementById('newShopModal').classList.add('active');
+        function handleCreateShop(e) {
+            e.preventDefault();
+            const name = document.getElementById('shopNameInput').value.trim();
+            const slug = name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+
+            const list = getShops();
+            if (list.some(s => s.id === slug)) {
+                alert('Ya existe una barbería con un nombre similar.');
+                return;
+            }
+
+            list.push({
+                id: slug,
+                name: name,
+                status: 'active'
+            });
+
+            saveShops(list);
+            closeModal('addShopModal');
+            document.getElementById('shopNameInput').value = '';
+            renderShops();
+            showToast(`Barbería "${name}" creada con éxito`);
+        }
+
+        function openModal(id) {
+            document.getElementById(id)?.classList.add('active');
         }
 
         function closeModal(id) {
             document.getElementById(id)?.classList.remove('active');
         }
 
-        function handleCreateShopSubmit(e) {
-            e.preventDefault();
-            const name = document.getElementById('newShopNameInput').value.trim();
-            const slug = document.getElementById('newShopSlugInput').value.trim().toLowerCase().replace(/[^a-z0-9_-]/g, '-');
-            const phone = document.getElementById('newShopPhoneInput').value.trim();
-            const fee = parseFloat(document.getElementById('newShopFeeInput').value) || 20;
-
-            const shops = getShopsRegistry();
-            if (shops.some(s => s.id === slug)) {
-                alert('Ya existe una barbería con ese identificador. Por favor elige otro.');
-                return;
-            }
-
-            shops.push({
-                id: slug,
-                name: name,
-                phone: phone,
-                fee: fee,
-                status: 'active',
-                createdAt: new Date().toISOString().split('T')[0]
-            });
-
-            saveShopsRegistry(shops);
-            closeModal('newShopModal');
-            loadAdminDashboard();
-            showToast(`Barbería "${name}" creada con éxito`, 'success');
-        }
-
-        function showToast(message, type = 'success') {
+        function showToast(msg) {
             const container = document.getElementById('toastContainer');
             if (!container) return;
-
             const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? 'fa-circle-check text-green' : 'fa-circle-info text-blue';
-            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${message}</span>`;
-            
+            toast.className = 'toast success';
+            toast.innerHTML = `<i class="fa-solid fa-circle-check text-green"></i> <span>${msg}</span>`;
             container.appendChild(toast);
             setTimeout(() => {
                 toast.style.opacity = '0';
