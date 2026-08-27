@@ -19,7 +19,7 @@
         
         <!-- Encabezado del Local -->
         <header class="booking-shop-header">
-            <div class="booking-shop-avatar">
+            <div class="booking-shop-avatar" id="bookShopAvatar">
                 <i class="fa-solid fa-scissors"></i>
             </div>
             <h1 class="booking-shop-title" id="bookShopName">Mi Barbería</h1>
@@ -127,6 +127,15 @@
         function loadShopInfo() {
             const store = getStore();
             document.getElementById('bookShopName').textContent = store.shop.name || 'Mi Barbería';
+            
+            // Render custom photo in header avatar if available
+            const avatar = document.getElementById('bookShopAvatar');
+            if (store.shop.photo) {
+                avatar.innerHTML = `<img src="${store.shop.photo}" alt="Logo">`;
+            } else {
+                avatar.innerHTML = `<i class="fa-solid fa-scissors"></i>`;
+            }
+
             if (store.shop.address) {
                 document.getElementById('bookShopAddress').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${store.shop.address}`;
             } else {

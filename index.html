@@ -19,7 +19,7 @@
     <header class="app-topbar">
         <div class="topbar-inner">
             <div class="shop-branding" onclick="switchMainTab('settings')">
-                <div class="shop-logo-badge">
+                <div class="shop-logo-badge" id="headerShopLogoBadge">
                     <i class="fa-solid fa-scissors"></i>
                 </div>
                 <div class="shop-info-text">
@@ -332,12 +332,32 @@
             <div class="panel-header-row">
                 <div class="panel-title-area">
                     <h2>Configuración de tu Barbería</h2>
-                    <p class="text-muted">Ajusta los datos del local, moneda, servicios y precios.</p>
+                    <p class="text-muted">Ajusta los datos del local, logo/foto, moneda, servicios y precios.</p>
                 </div>
                 <div class="panel-controls-group">
                     <button class="btn btn-primary" onclick="saveShopSettings()">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
                     </button>
+                </div>
+            </div>
+
+            <!-- Subida de Foto / Logo del Local -->
+            <div class="photo-uploader-box">
+                <div class="photo-preview-avatar" id="settingsPhotoPreview">
+                    <i class="fa-solid fa-scissors"></i>
+                </div>
+                <div class="photo-upload-actions">
+                    <strong style="display:block; font-size:1rem; margin-bottom:0.2rem;">Foto o Logo de tu Barbería</strong>
+                    <p class="text-muted" style="font-size:0.82rem; margin-bottom:0.6rem;">Esta imagen aparecerá en tu panel y en el link de reservas para tus clientes.</p>
+                    <div style="display:flex; gap:0.6rem; align-items:center;">
+                        <label class="photo-btn-label">
+                            <i class="fa-solid fa-camera"></i> Subir Foto
+                            <input type="file" id="shopPhotoFileInput" accept="image/*" onchange="handlePhotoUpload(event)">
+                        </label>
+                        <button class="btn btn-secondary btn-sm" id="btnRemovePhoto" onclick="removeShopPhoto()" style="display:none;">
+                            <i class="fa-solid fa-trash text-red"></i> Quitar Foto
+                        </button>
+                    </div>
                 </div>
             </div>
 

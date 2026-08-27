@@ -1,8 +1,8 @@
 /* ==========================================================================
-   BARBERFLOW - MULTI-TENANT REAL STORE (SIN NINGÚN DATO FICTICIO)
+   BARBERFLOW - MULTI-TENANT REAL STORE
    ========================================================================== */
 
-const STORAGE_VERSION = 'BARBERFLOW_PROD_V2';
+const STORAGE_VERSION = 'BARBERFLOW_PROD_V3';
 
 function getShopIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -17,14 +17,14 @@ function getStorageKey(shopId) {
     return `${STORAGE_VERSION}_${shopId || getShopIdFromUrl()}`;
 }
 
-// Plantilla inicial 100% limpia sin turnos, sin clientes ni barberos ficticios
 const CLEAN_SHOP_TEMPLATE = {
     shop: {
         id: 'mi-barberia',
         name: 'Mi Barbería',
         address: '',
         phone: '',
-        currency: '$'
+        currency: '$',
+        photo: '' // Foto / logo en Base64 o URL
     },
     services: [
         { id: 'srv-1', name: 'Corte de Cabello', duration: 30, price: 10, desc: 'Corte general' },

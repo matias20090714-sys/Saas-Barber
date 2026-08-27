@@ -74,7 +74,7 @@ function showToast(message, type = 'success') {
 }
 
 /* ==========================================================================
-   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA
+   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA (CON FOTO Y LOGO)
    ========================================================================== */
 function getBookingPortalUrl() {
     const store = getStore();
@@ -96,6 +96,56 @@ function loadShopBranding() {
     const bookingUrl = getBookingPortalUrl();
     const publicBookingInput = document.getElementById('publicBookingLinkInput');
     if (publicBookingInput) publicBookingInput.value = bookingUrl;
+
+    // Render avatar photo if set
+    renderShopPhotoAvatar(store.shop.photo);
+}
+
+function renderShopPhotoAvatar(photoUrl) {
+    const headerLogoBadge = document.getElementById('headerShopLogoBadge');
+    const settingsPreview = document.getElementById('settingsPhotoPreview');
+    const btnRemove = document.getElementById('btnRemovePhoto');
+
+    if (photoUrl) {
+        if (headerLogoBadge) headerLogoBadge.innerHTML = `<img src="${photoUrl}" alt="Logo">`;
+        if (settingsPreview) settingsPreview.innerHTML = `<img src="${photoUrl}" alt="Logo">`;
+        if (btnRemove) btnRemove.style.display = 'inline-flex';
+    } else {
+        if (headerLogoBadge) headerLogoBadge.innerHTML = `<i class="fa-solid fa-scissors"></i>`;
+        if (settingsPreview) settingsPreview.innerHTML = `<i class="fa-solid fa-scissors"></i>`;
+        if (btnRemove) btnRemove.style.display = 'none';
+    }
+}
+
+function handlePhotoUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) {
+        alert('La imagen es demasiado grande. Por favor selecciona una imagen menor a 2MB.');
+        return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const base64Photo = e.target.result;
+        const store = getStore();
+        store.shop.photo = base64Photo;
+        saveStore(store);
+        renderShopPhotoAvatar(base64Photo);
+        showToast('Foto de la barbería actualizada con éxito', 'success');
+    };
+    reader.readAsDataURL(file);
+}
+
+function removeShopPhoto() {
+    if (confirm('¿Eliminar la foto de la barbería?')) {
+        const store = getStore();
+        store.shop.photo = '';
+        saveStore(store);
+        renderShopPhotoAvatar('');
+        showToast('Foto eliminada', 'info');
+    }
 }
 
 function saveShopSettings() {
