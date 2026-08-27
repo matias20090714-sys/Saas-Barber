@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservar Turno Online</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Stylesheet -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+
+    <div class="booking-portal-container">
+        
+        <!-- Encabezado del Local -->
+        <header class="booking-shop-header">
+            <div class="booking-shop-avatar">
+                <i class="fa-solid fa-scissors"></i>
+            </div>
+            <h1 class="booking-shop-title" id="bookShopName">Mi Barbería</h1>
+            <p class="booking-shop-address text-muted" id="bookShopAddress"><i class="fa-solid fa-location-dot"></i> Ubicación del local</p>
+        </header>
+
+        <!-- Pasos de Reserva -->
+        <div class="booking-steps-nav">
+            <div class="step-indicator active" id="stepInd1">1. Servicio</div>
+            <div class="step-indicator" id="stepInd2">2. Barbero</div>
+            <div class="step-indicator" id="stepInd3">3. Fecha y Hora</div>
+            <div class="step-indicator" id="stepInd4">4. Confirmar</div>
+        </div>
+
+        <!-- PASO 1: Seleccionar Servicio -->
+        <div class="booking-step-box active" id="bookingStep1">
+            <h3 class="step-heading">Elige el servicio que deseas:</h3>
+            <div class="services-list-select" id="bookServicesList"></div>
+        </div>
+
+        <!-- PASO 2: Seleccionar Barbero -->
+        <div class="booking-step-box" id="bookingStep2">
+            <div class="step-nav-bar">
+                <button class="btn-back" onclick="goToStep(1)"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+                <h3 class="step-heading">Elige tu barbero de preferencia:</h3>
+            </div>
+            <div class="barbers-list-select" id="bookBarbersList"></div>
+        </div>
+
+        <!-- PASO 3: Seleccionar Fecha y Horario -->
+        <div class="booking-step-box" id="bookingStep3">
+            <div class="step-nav-bar">
+                <button class="btn-back" onclick="goToStep(2)"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+                <h3 class="step-heading">Elige el día y la hora:</h3>
+            </div>
+            
+            <div class="date-picker-scroll" id="bookDateScroll"></div>
+
+            <h4 class="mt-4" style="font-size:0.95rem; color:var(--text-muted);">Horarios disponibles:</h4>
+            <div class="time-slots-grid" id="bookTimeSlots"></div>
+        </div>
+
+        <!-- PASO 4: Datos del Cliente y Confirmación -->
+        <div class="booking-step-box" id="bookingStep4">
+            <div class="step-nav-bar">
+                <button class="btn-back" onclick="goToStep(3)"><i class="fa-solid fa-arrow-left"></i> Volver</button>
+                <h3 class="step-heading">Completa tus datos para confirmar:</h3>
+            </div>
+
+            <!-- Resumen del Turno -->
+            <div class="appointment-summary-card" id="bookingSummaryCard"></div>
+
+            <form onsubmit="handlePublicBookingSubmit(event)">
+                <div class="form-group">
+                    <label>Tu Nombre y Apellido:</label>
+                    <input type="text" id="bookClientName" required placeholder="Ej: Lucas Martínez" class="input-field">
+                </div>
+                <div class="form-group">
+                    <label>Tu Número de WhatsApp:</label>
+                    <input type="tel" id="bookClientPhone" required placeholder="Ej: +54 9 11 2345-6789" class="input-field">
+                </div>
+                <button type="submit" class="btn btn-primary btn-block btn-large">
+                    <i class="fa-solid fa-check-circle"></i> Confirmar Turno
+                </button>
+            </form>
+        </div>
+
+        <!-- PANTALLA DE ÉXITO -->
+        <div class="booking-step-box" id="bookingSuccessBox">
+            <div class="success-ticket-box">
+                <div class="success-icon text-green"><i class="fa-solid fa-circle-check"></i></div>
+                <h2>¡Turno Reservado con Éxito!</h2>
+                <p class="text-muted" style="margin: 0.5rem 0 1.5rem;">Tu cita ha quedado registrada directamente en la agenda de la barbería.</p>
+
+                <div class="ticket-details" id="successTicketDetails"></div>
+
+                <button class="btn btn-whatsapp btn-block btn-large mt-4" id="btnWhatsAppConfirm">
+                    <i class="fa-brands fa-whatsapp"></i> Enviar Confirmación por WhatsApp
+                </button>
+                <button class="btn btn-secondary btn-block mt-2" onclick="location.reload()">
+                    <i class="fa-solid fa-plus"></i> Reservar Otro Turno
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/data.js"></script>
+    <script>
+        let bookingState = {
+            service: null,
+            barber: null,
+            date: new Date().toISOString().split('T')[0],
+            time: null
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadShopInfo();
+            loadServices();
+            loadBarbers();
+            renderDates();
+        });
+
+        function loadShopInfo() {
+            const store = getStore();
+            document.getElementById('bookShopName').textContent = store.shop.name || 'Mi Barbería';
+            if (store.shop.address) {
+                document.getElementById('bookShopAddress').innerHTML = `<i class="fa-solid fa-location-dot"></i> ${store.shop.address}`;
+            } else {
+                document.getElementById('bookShopAddress').style.display = 'none';
+            }
+        }
+
+        function loadServices() {
+            const store = getStore();
+            const curr = store.shop.currency || '$';
+            const container = document.getElementById('bookServicesList');
+
+            if (!store.services || store.services.length === 0) {
+                container.innerHTML = `<p class="text-muted" style="text-align:center; padding: 2rem;">No hay servicios disponibles en este momento.</p>`;
+                return;
+            }
+
+            container.innerHTML = store.services.map(s => `
+                <div class="service-item-card" onclick="selectService('${s.id}')">
+                    <div>
+                        <strong style="font-size:1.05rem; display:block;">${s.name}</strong>
+                        ${s.desc ? `<span class="text-muted" style="font-size:0.82rem;">${s.desc}</span>` : ''}
+                    </div>
+                    <div style="text-align:right;">
+                        <span class="text-green" style="font-size:1.2rem; font-weight:800;">${curr}${s.price}</span>
+                        <span class="text-muted" style="font-size:0.75rem; display:block;">${s.duration} min</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectService(id) {
+            const store = getStore();
+            bookingState.service = store.services.find(s => s.id === id);
+            goToStep(2);
+        }
+
+        function loadBarbers() {
+            const store = getStore();
+            const container = document.getElementById('bookBarbersList');
+
+            let html = `
+                <div class="barber-item-card" onclick="selectBarber('any')">
+                    <div class="barber-icon-avatar"><i class="fa-solid fa-users"></i></div>
+                    <strong>Cualquiera Disponible</strong>
+                    <span class="text-muted" style="font-size:0.78rem; display:block;">El primer barbero libre</span>
+                </div>
+            `;
+
+            if (store.barbers && store.barbers.length > 0) {
+                html += store.barbers.filter(b => b.active !== false).map(b => `
+                    <div class="barber-item-card" onclick="selectBarber('${b.id}')">
+                        <div class="barber-icon-avatar"><i class="fa-solid fa-scissors"></i></div>
+                        <strong>${b.name}</strong>
+                        <span class="text-muted" style="font-size:0.78rem; display:block;">${b.specialty || 'Barbero'}</span>
+                    </div>
+                `).join('');
+            }
+
+            container.innerHTML = html;
+        }
+
+        function selectBarber(id) {
+            const store = getStore();
+            if (id === 'any') {
+                const first = (store.barbers && store.barbers.length > 0) ? store.barbers[0] : { id: null, name: 'Cualquiera Disponible' };
+                bookingState.barber = { id: first.id, name: first.name };
+            } else {
+                bookingState.barber = store.barbers.find(b => b.id === id);
+            }
+            goToStep(3);
+        }
+
+        function renderDates() {
+            const container = document.getElementById('bookDateScroll');
+            const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+            let html = '';
+            const today = new Date();
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date();
+                d.setDate(today.getDate() + i);
+                const iso = d.toISOString().split('T')[0];
+                const dayName = days[d.getDay()];
+                const dayNum = d.getDate();
+
+                html += `
+                    <div class="date-card ${i === 0 ? 'active' : ''}" onclick="selectDate('${iso}', this)">
+                        <span style="font-size:0.75rem; text-transform:uppercase;">${dayName}</span>
+                        <strong style="font-size:1.2rem; display:block;">${dayNum}</strong>
+                    </div>
+                `;
+            }
+            container.innerHTML = html;
+            renderTimeSlots();
+        }
+
+        function selectDate(iso, el) {
+            bookingState.date = iso;
+            document.querySelectorAll('.date-card').forEach(c => c.classList.remove('active'));
+            el.classList.add('active');
+            renderTimeSlots();
+        }
+
+        function renderTimeSlots() {
+            const container = document.getElementById('bookTimeSlots');
+            const slots = ['10:00', '11:00', '12:00', '13:00', '14:30', '15:30', '16:30', '17:30', '18:30', '19:30'];
+            
+            // Comprobar horarios ocupados
+            const store = getStore();
+            const taken = (store.appointments || [])
+                .filter(a => a.date === bookingState.date && a.status !== 'NoAsistio' && (bookingState.barber.id === null || a.barberId === bookingState.barber.id))
+                .map(a => a.time);
+
+            container.innerHTML = slots.map(t => {
+                const isTaken = taken.includes(t);
+                return `
+                    <button class="time-slot-btn ${isTaken ? 'disabled' : ''}" ${isTaken ? 'disabled' : ''} onclick="selectTime('${t}', this)">
+                        ${t}
+                    </button>
+                `;
+            }).join('');
+        }
+
+        function selectTime(t, el) {
+            bookingState.time = t;
+            document.querySelectorAll('.time-slot-btn').forEach(b => b.classList.remove('active'));
+            el.classList.add('active');
+            goToStep(4);
+        }
+
+        function goToStep(step) {
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`bookingStep${i}`)?.classList.remove('active');
+                document.getElementById(`stepInd${i}`)?.classList.remove('active');
+            }
+            document.getElementById(`bookingStep${step}`)?.classList.add('active');
+            for (let i = 1; i <= step; i++) {
+                document.getElementById(`stepInd${i}`)?.classList.add('active');
+            }
+
+            if (step === 4) {
+                const store = getStore();
+                const curr = store.shop.currency || '$';
+                document.getElementById('bookingSummaryCard').innerHTML = `
+                    <div class="summary-line"><span>Servicio:</span><strong>${bookingState.service.name} (${curr}${bookingState.service.price})</strong></div>
+                    <div class="summary-line"><span>Duración:</span><span>${bookingState.service.duration} min</span></div>
+                    <div class="summary-line"><span>Barbero:</span><strong>${bookingState.barber.name}</strong></div>
+                    <div class="summary-line"><span>Fecha y Hora:</span><strong class="text-gold">${bookingState.date} a las ${bookingState.time} hs</strong></div>
+                `;
+            }
+        }
+
+        function handlePublicBookingSubmit(e) {
+            e.preventDefault();
+            const name = document.getElementById('bookClientName').value.trim();
+            const phone = document.getElementById('bookClientPhone').value.trim();
+
+            const store = getStore();
+            const newApp = {
+                id: 'app-' + Date.now(),
+                clientName: name,
+                clientPhone: phone,
+                serviceId: bookingState.service.id,
+                barberId: bookingState.barber.id,
+                date: bookingState.date,
+                time: bookingState.time,
+                status: 'Pendiente',
+                notes: 'Reserva online del cliente',
+                paid: false,
+                amount: bookingState.service.price
+            };
+
+            if (!store.appointments) store.appointments = [];
+            store.appointments.push(newApp);
+
+            // Registrar cliente en CRM
+            if (!store.clients) store.clients = [];
+            const cli = store.clients.find(c => (phone && c.phone === phone) || c.name === name);
+            if (cli) {
+                cli.visits = (cli.visits || 1) + 1;
+            } else {
+                store.clients.push({
+                    id: 'cli-' + Date.now(),
+                    name: name,
+                    phone: phone,
+                    visits: 1,
+                    totalSpent: 0,
+                    lastVisit: bookingState.date,
+                    notes: 'Cliente de reserva online'
+                });
+            }
+
+            saveStore(store);
+
+            // Mostrar pantalla de éxito
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById(`bookingStep${i}`)?.classList.remove('active');
+            }
+            document.getElementById('bookingSuccessBox').classList.add('active');
+
+            const curr = store.shop.currency || '$';
+            document.getElementById('successTicketDetails').innerHTML = `
+                <div class="summary-line"><span>Cliente:</span><strong>${name}</strong></div>
+                <div class="summary-line"><span>Servicio:</span><strong>${bookingState.service.name} (${curr}${bookingState.service.price})</strong></div>
+                <div class="summary-line"><span>Barbero:</span><strong>${bookingState.barber.name}</strong></div>
+                <div class="summary-line"><span>Fecha:</span><strong class="text-gold">${bookingState.date} - ${bookingState.time} hs</strong></div>
+            `;
+
+            const msg = encodeURIComponent(`Hola ${store.shop.name}! Acabo de reservar mi turno online para el ${bookingState.date} a las ${bookingState.time} hs.\n\n💈 Servicio: ${bookingState.service.name}\n👤 Nombre: ${name}`);
+            const shopPhone = (store.shop.phone || '').replace(/[^0-9]/g, '');
+            document.getElementById('btnWhatsAppConfirm').onclick = () => {
+                if (shopPhone) {
+                    window.open(`https://wa.me/${shopPhone}?text=${msg}`, '_blank');
+                } else {
+                    window.open(`https://wa.me/?text=${msg}`, '_blank');
+                }
+            };
+        }
+    </script>
+</body>
+</html>

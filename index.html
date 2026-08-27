@@ -35,6 +35,10 @@
                     <span>Agenda</span>
                     <span class="badge-pill" id="badgePendingCount">0</span>
                 </button>
+                <button class="nav-tab-btn" data-tab="booking-link" onclick="switchMainTab('booking-link')">
+                    <i class="fa-solid fa-link"></i>
+                    <span>Link de Reservas Clientes</span>
+                </button>
                 <button class="nav-tab-btn" data-tab="pos" onclick="switchMainTab('pos')">
                     <i class="fa-solid fa-cash-register"></i>
                     <span>Caja & POS</span>
@@ -132,7 +136,41 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 2. CAJA & PUNTO DE VENTA (POS)                                            -->
+        <!-- 2. LINK DE RESERVAS ONLINE PARA CLIENTES                                  -->
+        <!-- ========================================================================= -->
+        <section class="tab-panel" id="panelBookingLink">
+            <div class="share-link-card">
+                <div class="share-link-header">
+                    <div class="share-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div>
+                        <h3>Link de Reservas para tus Clientes</h3>
+                        <p class="text-muted">Comparte este link con tus clientes para que agenden sus turnos por internet y aparezcan directamente en tu Agenda.</p>
+                    </div>
+                </div>
+                <div class="share-input-row">
+                    <input type="text" readonly id="publicBookingLinkInput" class="input-field link-input">
+                    <button class="btn btn-primary" onclick="copyPublicBookingLink()"><i class="fa-regular fa-copy"></i> Copiar Link</button>
+                    <button class="btn btn-whatsapp" onclick="shareBookingWhatsApp()"><i class="fa-brands fa-whatsapp"></i> Compartir por WhatsApp</button>
+                    <button class="btn btn-secondary" onclick="openBookingPortalTab()"><i class="fa-solid fa-arrow-up-right-from-square"></i> Probar Link</button>
+                </div>
+            </div>
+
+            <div class="app-card mt-4">
+                <div class="card-header">
+                    <h3><i class="fa-solid fa-circle-check text-green"></i> ¿Cómo funciona el link de reservas?</h3>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted" style="line-height: 1.8;">
+                        1. Pega este link en tu biografía de <strong>Instagram</strong>, <strong>Facebook</strong> o pásalo por <strong>WhatsApp</strong>.<br>
+                        2. Tus clientes eligen el servicio, barbero y horario disponible.<br>
+                        3. Al confirmar, el turno entra <strong>automáticamente a tu Agenda en Vivo</strong> con los datos del cliente sin que tengas que responder mensajes manualmente.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- 3. CAJA & PUNTO DE VENTA (POS)                                            -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelPos">
             <div class="panel-header-row">
@@ -196,7 +234,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 3. COMISIONES DE BARBEROS                                                 -->
+        <!-- 4. COMISIONES DE BARBEROS                                                 -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelCommissions">
             <div class="panel-header-row">
@@ -232,13 +270,13 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 4. CLIENTES & CRM                                                         -->
+        <!-- 5. CLIENTES & CRM                                                         -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelClients">
             <div class="panel-header-row">
                 <div class="panel-title-area">
                     <h2>Directorio de Clientes</h2>
-                    <p class="text-muted">Historial de visitas, notas de estilo/corte y contacto directo por WhatsApp.</p>
+                    <p class="text-muted">Historial de visitas, notas de corte y contacto directo por WhatsApp.</p>
                 </div>
                 <div class="panel-controls-group">
                     <div class="search-input-box">
@@ -269,7 +307,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 5. EQUIPO DE BARBEROS                                                     -->
+        <!-- 6. EQUIPO DE BARBEROS                                                     -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelBarbers">
             <div class="panel-header-row">
@@ -288,7 +326,7 @@
         </section>
 
         <!-- ========================================================================= -->
-        <!-- 6. SERVICIOS Y AJUSTES DE LA BARBERÍA                                     -->
+        <!-- 7. SERVICIOS Y AJUSTES DE LA BARBERÍA                                     -->
         <!-- ========================================================================= -->
         <section class="tab-panel" id="panelSettings">
             <div class="panel-header-row">
@@ -300,21 +338,6 @@
                     <button class="btn btn-primary" onclick="saveShopSettings()">
                         <i class="fa-solid fa-floppy-disk"></i> Guardar Cambios
                     </button>
-                </div>
-            </div>
-
-            <!-- Enlace Permanente de esta Barbería -->
-            <div class="share-link-card" style="margin-bottom: 1.5rem;">
-                <div class="share-link-header">
-                    <div class="share-icon"><i class="fa-solid fa-link"></i></div>
-                    <div>
-                        <h3>Enlace Directo de esta Barbería</h3>
-                        <p class="text-muted">Copia este link para abrir directamente esta barbería desde cualquier dispositivo:</p>
-                    </div>
-                </div>
-                <div class="share-input-row">
-                    <input type="text" readonly id="shopDirectLinkInput" class="input-field link-input">
-                    <button class="btn btn-primary" onclick="copyDirectShopLink()"><i class="fa-regular fa-copy"></i> Copiar Link</button>
                 </div>
             </div>
 

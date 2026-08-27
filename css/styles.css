@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BARBERFLOW - SISTEMA DIRECTO DE GESTIÓN PARA BARBERÍAS
+   BARBERFLOW - SISTEMA DE GESTIÓN Y PORTAL DE RESERVAS
    ========================================================================== */
 
 :root {
@@ -169,6 +169,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .btn-close:hover {
     color: #ffffff;
+}
+
+.btn-back {
+    background: transparent;
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 0.4rem 0.8rem;
+    border-radius: var(--radius-sm);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-back:hover {
+    color: #ffffff;
+    border-color: var(--gold);
 }
 
 /* Inputs */
@@ -481,7 +497,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .app-card.status-Pendiente { border-left-color: var(--gold); }
-.app-card.status-EnAtencion { border-left-color: var(--blue); }
+.app-card.status-EnProceso { border-left-color: var(--blue); }
 .app-card.status-Completado { border-left-color: var(--green); opacity: 0.85; }
 .app-card.status-NoAsistio { border-left-color: var(--red); opacity: 0.5; }
 
@@ -507,7 +523,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .status-Pendiente { background: rgba(245, 158, 11, 0.15); color: var(--gold); }
-.status-EnAtencion { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
+.status-EnProceso { background: rgba(59, 130, 246, 0.15); color: var(--blue); }
 .status-Completado { background: var(--green-glow); color: var(--green); }
 .status-NoAsistio { background: rgba(239, 68, 68, 0.15); color: var(--red); }
 
@@ -520,207 +536,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   2. LINK Y PORTAL DE RESERVAS DE CLIENTES
-   ========================================================================== */
-.booking-portal-layout {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
-}
-
-.share-link-card {
-    background: linear-gradient(135deg, #192231, #0f1622);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-}
-
-.share-link-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
-}
-
-.share-icon {
-    width: 48px;
-    height: 48px;
-    background: rgba(245, 158, 11, 0.15);
-    color: var(--gold);
-    border-radius: var(--radius-md);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.4rem;
-}
-
-.share-input-row {
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
-
-.link-input {
-    flex: 1;
-    min-width: 280px;
-    font-weight: 600;
-    color: var(--gold);
-}
-
-.client-simulator-box {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 2rem;
-}
-
-.simulator-badge {
-    font-size: 0.85rem;
-    color: var(--text-muted);
-    font-weight: 600;
-    margin-bottom: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.client-booking-wizard {
-    max-width: 600px;
-    margin: 0 auto;
-    background: var(--bg-main);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-md);
-    padding: 2rem;
-}
-
-.sim-steps-bar {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1.5rem;
-    border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.8rem;
-}
-
-.sim-step {
-    font-size: 0.78rem;
-    color: var(--text-dim);
-    font-weight: 700;
-}
-
-.sim-step.active {
-    color: var(--gold);
-}
-
-.sim-step-content {
-    display: none;
-}
-
-.sim-step-content.active {
-    display: block;
-    animation: fadeIn 0.2s ease;
-}
-
-.sim-services-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 0.8rem;
-    margin-top: 1rem;
-}
-
-.sim-service-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.sim-service-item:hover {
-    border-color: var(--gold);
-    transform: translateY(-2px);
-}
-
-.sim-barbers-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
-    margin-top: 1rem;
-}
-
-.sim-barber-item {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.sim-barber-item:hover {
-    border-color: var(--gold);
-}
-
-.sim-date-scroll {
-    display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding: 1rem 0;
-}
-
-.sim-date-card {
-    min-width: 65px;
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    padding: 0.6rem 0.3rem;
-    text-align: center;
-    cursor: pointer;
-}
-
-.sim-date-card.active {
-    background: var(--gold);
-    color: #080c10;
-    font-weight: 700;
-}
-
-.sim-time-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-    gap: 0.5rem;
-    margin-top: 1rem;
-}
-
-.sim-time-btn {
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    color: var(--text-main);
-    padding: 0.6rem;
-    border-radius: var(--radius-sm);
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.sim-time-btn:hover, .sim-time-btn.active {
-    background: var(--gold);
-    color: #080c10;
-}
-
-.sim-summary-ticket {
-    background: var(--bg-card);
-    border: 1px dashed var(--border-light);
-    border-radius: var(--radius-sm);
-    padding: 1rem;
-    margin-bottom: 1.2rem;
-    font-size: 0.88rem;
-}
-
-/* ==========================================================================
-   3. CAJA & POS
+   2. CAJA & POS
    ========================================================================== */
 .pos-balance-grid {
     display: grid;
@@ -808,7 +624,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   4. COMISIONES
+   3. COMISIONES
    ========================================================================== */
 .commissions-staff-cards {
     display: grid;
@@ -839,7 +655,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   5. BARBEROS MANAGEMENT
+   4. BARBEROS MANAGEMENT
    ========================================================================== */
 .barbers-management-grid {
     display: grid;
@@ -863,8 +679,47 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 /* ==========================================================================
-   6. SETTINGS & SERVICES
+   5. SETTINGS & SERVICES
    ========================================================================== */
+.share-link-card {
+    background: linear-gradient(135deg, #182232, #0f1622);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: 1.5rem;
+}
+
+.share-link-header {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 1rem;
+}
+
+.share-icon {
+    width: 42px;
+    height: 42px;
+    background: rgba(245, 158, 11, 0.15);
+    color: var(--gold);
+    border-radius: var(--radius-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.share-input-row {
+    display: flex;
+    gap: 0.6rem;
+    flex-wrap: wrap;
+}
+
+.link-input {
+    flex: 1;
+    min-width: 250px;
+    color: var(--gold);
+    font-weight: 600;
+}
+
 .settings-two-columns {
     display: grid;
     grid-template-columns: 1fr 1.2fr;
@@ -885,6 +740,220 @@ h1, h2, h3, h4, h5, h6 {
     border: 1px solid var(--border-color);
     padding: 0.8rem 1rem;
     border-radius: var(--radius-sm);
+}
+
+/* ==========================================================================
+   6. PORTAL DE RESERVAS PARA CLIENTES (booking.html)
+   ========================================================================== */
+.booking-portal-container {
+    max-width: 600px;
+    margin: 2rem auto 4rem;
+    padding: 0 1rem;
+}
+
+.booking-shop-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.booking-shop-avatar {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--gold), #d97706);
+    border-radius: var(--radius-md);
+    color: #080c10;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    margin-bottom: 0.8rem;
+    box-shadow: 0 4px 15px var(--gold-glow);
+}
+
+.booking-shop-title {
+    font-size: 1.6rem;
+    margin-bottom: 0.2rem;
+}
+
+.booking-steps-nav {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.8rem;
+}
+
+.step-indicator {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    font-weight: 700;
+}
+
+.step-indicator.active {
+    color: var(--gold);
+}
+
+.booking-step-box {
+    display: none;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.8rem;
+    animation: fadeIn 0.2s ease;
+}
+
+.booking-step-box.active {
+    display: block;
+}
+
+.step-heading {
+    font-size: 1.15rem;
+    margin-bottom: 1.2rem;
+}
+
+.step-nav-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.services-list-select {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.service-item-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 1rem 1.2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.service-item-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-card);
+}
+
+.barbers-list-select {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.barber-item-card {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 1.2rem 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.barber-item-card:hover {
+    border-color: var(--gold);
+    transform: translateY(-2px);
+}
+
+.barber-icon-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-light);
+    color: var(--gold);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    margin: 0 auto 0.6rem;
+}
+
+.date-picker-scroll {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding-bottom: 0.8rem;
+}
+
+.date-card {
+    min-width: 68px;
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 0.3rem;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.date-card.active {
+    background: var(--gold);
+    color: #080c10;
+    font-weight: 700;
+    border-color: var(--gold);
+}
+
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(85px, 1fr));
+    gap: 0.6rem;
+    margin-top: 0.8rem;
+}
+
+.time-slot-btn {
+    background: var(--bg-main);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.65rem 0.4rem;
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.time-slot-btn:hover, .time-slot-btn.active {
+    background: var(--gold);
+    color: #080c10;
+    border-color: var(--gold);
+}
+
+.time-slot-btn.disabled {
+    opacity: 0.3;
+    pointer-events: none;
+    text-decoration: line-through;
+}
+
+.appointment-summary-card, .ticket-details {
+    background: var(--bg-main);
+    border: 1px dashed var(--border-light);
+    border-radius: var(--radius-sm);
+    padding: 1.2rem;
+    margin-bottom: 1.5rem;
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.success-ticket-box {
+    text-align: center;
+}
+
+.success-icon {
+    font-size: 3.5rem;
+    margin-bottom: 1rem;
 }
 
 /* ==========================================================================

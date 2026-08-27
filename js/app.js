@@ -76,6 +76,13 @@ function showToast(message, type = 'success') {
 /* ==========================================================================
    CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA
    ========================================================================== */
+function getBookingPortalUrl() {
+    const store = getStore();
+    const shopId = store.shop.id || getShopIdFromUrl();
+    const baseUrl = window.location.href.split('?')[0].replace('index.html', '');
+    return `${baseUrl}booking.html?shop=${shopId}`;
+}
+
 function loadShopBranding() {
     const store = getStore();
     const curr = store.shop.currency || '$';
@@ -86,10 +93,9 @@ function loadShopBranding() {
     document.getElementById('settingShopPhone').value = store.shop.phone || '';
     document.getElementById('settingCurrency').value = curr;
 
-    const currentOrigin = window.location.origin + window.location.pathname;
-    const directLink = `${currentOrigin}?shop=${store.shop.id || getShopIdFromUrl()}`;
-    const linkInput = document.getElementById('shopDirectLinkInput');
-    if (linkInput) linkInput.value = directLink;
+    const bookingUrl = getBookingPortalUrl();
+    const publicBookingInput = document.getElementById('publicBookingLinkInput');
+    if (publicBookingInput) publicBookingInput.value = bookingUrl;
 }
 
 function saveShopSettings() {
@@ -105,11 +111,21 @@ function saveShopSettings() {
     showToast('¡Ajustes guardados!', 'success');
 }
 
-function copyDirectShopLink() {
-    const input = document.getElementById('shopDirectLinkInput');
-    if (!input) return;
-    navigator.clipboard.writeText(input.value);
-    showToast('Enlace de la barbería copiado al portapapeles', 'success');
+function copyPublicBookingLink() {
+    const bookingUrl = getBookingPortalUrl();
+    navigator.clipboard.writeText(bookingUrl);
+    showToast('¡Link de reservas copiado al portapapeles!', 'success');
+}
+
+function shareBookingWhatsApp() {
+    const store = getStore();
+    const bookingUrl = getBookingPortalUrl();
+    const msg = encodeURIComponent(`💈 ¡Hola! Reserva tu turno online en ${store.shop.name} directamente desde este link:\n${bookingUrl}`);
+    window.open(`https://wa.me/?text=${msg}`, '_blank');
+}
+
+function openBookingPortalTab() {
+    window.open(getBookingPortalUrl(), '_blank');
 }
 
 function exportDataBackup() {
@@ -173,8 +189,11 @@ function loadAgenda() {
             <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
                 <i class="fa-solid fa-calendar-xmark text-muted" style="font-size: 2.5rem; margin-bottom: 0.8rem;"></i>
                 <h3>No hay turnos agendados para esta fecha</h3>
-                <p class="text-muted">Presiona "+ Agendar Turno" para registrar una cita.</p>
-                <button class="btn btn-primary mt-4" onclick="openNewWalkInModal()">+ Agendar Turno</button>
+                <p class="text-muted">Los turnos que reserven tus clientes por el link o los que agregues manualmente aparecerán aquí en vivo.</p>
+                <div style="display:flex; justify-content:center; gap:0.8rem; margin-top:1.2rem;">
+                    <button class="btn btn-primary" onclick="openNewWalkInModal()">+ Agendar Turno</button>
+                    <button class="btn btn-secondary" onclick="switchMainTab('booking-link')"><i class="fa-solid fa-link"></i> Ver Link de Reservas</button>
+                </div>
             </div>
         `;
         return;
