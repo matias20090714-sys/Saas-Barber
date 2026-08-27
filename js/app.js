@@ -1,5 +1,5 @@
 /* ==========================================================================
-   BARBERFLOW - CONTROLADOR DE HERRAMIENTAS OPERATIVAS (MULTI-TENANT REAL)
+   BARBERFLOW - CONTROLADOR DE HERRAMIENTAS OPERATIVAS (100% REAL)
    ========================================================================== */
 
 let currentAgendaDate = new Date().toISOString().split('T')[0];
@@ -74,7 +74,7 @@ function showToast(message, type = 'success') {
 }
 
 /* ==========================================================================
-   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA (MULTI-TENANT)
+   CONFIGURACIÓN Y AJUSTES DE LA BARBERÍA
    ========================================================================== */
 function loadShopBranding() {
     const store = getStore();
@@ -102,14 +102,14 @@ function saveShopSettings() {
 
     saveStore(store);
     loadShopBranding();
-    showToast('¡Ajustes de la barbería guardados!', 'success');
+    showToast('¡Ajustes guardados!', 'success');
 }
 
 function copyDirectShopLink() {
     const input = document.getElementById('shopDirectLinkInput');
     if (!input) return;
     navigator.clipboard.writeText(input.value);
-    showToast('Enlace copiado al portapapeles', 'success');
+    showToast('Enlace de la barbería copiado al portapapeles', 'success');
 }
 
 function exportDataBackup() {
@@ -119,7 +119,7 @@ function exportDataBackup() {
     dlAnchorElem.setAttribute("href", dataStr);
     dlAnchorElem.setAttribute("download", `barberflow-${store.shop.name.replace(/\s+/g, '_')}.json`);
     dlAnchorElem.click();
-    showToast('Respaldo de datos descargado con éxito', 'success');
+    showToast('Respaldo descargado', 'success');
 }
 
 /* ==========================================================================
@@ -144,7 +144,7 @@ function loadAgenda() {
 
     // Filtros de barberos
     let filterHtml = `<button class="barber-pill-btn ${currentBarberFilter === 'all' ? 'active' : ''}" onclick="setBarberFilter('all')">Todos</button>`;
-    store.barbers.forEach(b => {
+    (store.barbers || []).forEach(b => {
         filterHtml += `<button class="barber-pill-btn ${currentBarberFilter === b.id ? 'active' : ''}" onclick="setBarberFilter('${b.id}')"><i class="fa-solid fa-scissors"></i> ${b.name}</button>`;
     });
     filtersContainer.innerHTML = filterHtml;
@@ -162,7 +162,7 @@ function loadAgenda() {
     document.getElementById('kpiTodayRevenue').textContent = `${curr}${estRev}`;
     document.getElementById('kpiActiveBarbers').textContent = (store.barbers || []).filter(b => b.active).length;
     
-    const nextPending = dayApps.find(a => a.status === 'Pendiente' || a.status === 'EnAtencion');
+    const nextPending = dayApps.find(a => a.status === 'Pendiente' || a.status === 'EnProceso');
     document.getElementById('kpiNextTime').textContent = nextPending ? nextPending.time : '--:--';
 
     const pendingCount = (store.appointments || []).filter(a => a.date === currentAgendaDate && a.status === 'Pendiente').length;
@@ -172,8 +172,8 @@ function loadAgenda() {
         container.innerHTML = `
             <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
                 <i class="fa-solid fa-calendar-xmark text-muted" style="font-size: 2.5rem; margin-bottom: 0.8rem;"></i>
-                <h3>No hay turnos para esta fecha</h3>
-                <p class="text-muted">Presiona el botón "+ Agendar Turno" para registrar una cita o cliente en el local.</p>
+                <h3>No hay turnos agendados para esta fecha</h3>
+                <p class="text-muted">Presiona "+ Agendar Turno" para registrar una cita.</p>
                 <button class="btn btn-primary mt-4" onclick="openNewWalkInModal()">+ Agendar Turno</button>
             </div>
         `;
@@ -181,14 +181,21 @@ function loadAgenda() {
     }
 
     container.innerHTML = dayApps.map(app => {
-        const service = store.services.find(s => s.id === app.serviceId) || { name: 'Servicio', price: app.amount };
-        const barber = store.barbers.find(b => b.id === app.barberId) || { name: 'Barbero' };
+        const service = (store.services || []).find(s => s.id === app.serviceId) || { name: 'Servicio', price: app.amount };
+        const barber = (store.barbers || []).find(b => b.id === app.barberId) || { name: 'Sin asignar' };
+
+        const statusLabels = {
+            'Pendiente': 'Pendiente',
+            'EnProceso': 'En Proceso',
+            'Completado': 'Completado',
+            'NoAsistio': 'No Asistió'
+        };
 
         return `
             <div class="app-card status-${app.status}">
                 <div class="app-card-head">
                     <span class="app-time"><i class="fa-regular fa-clock"></i> ${app.time} hs</span>
-                    <span class="status-badge status-${app.status}">${app.status === 'EnAtencion' ? 'En Silla' : app.status}</span>
+                    <span class="status-badge status-${app.status}">${statusLabels[app.status] || app.status}</span>
                 </div>
                 <div>
                     <h3 style="font-size: 1.1rem; margin-bottom: 0.2rem;">${app.clientName}</h3>
@@ -198,9 +205,9 @@ function loadAgenda() {
                 </div>
                 <div class="app-actions">
                     ${app.status === 'Pendiente' ? `
-                        <button class="btn btn-secondary btn-block" onclick="updateAppointmentStatus('${app.id}', 'EnAtencion')"><i class="fa-solid fa-chair"></i> Sentar en Silla</button>
+                        <button class="btn btn-secondary btn-block" onclick="updateAppointmentStatus('${app.id}', 'EnProceso')"><i class="fa-solid fa-scissors"></i> En Proceso</button>
                     ` : ''}
-                    ${app.status === 'EnAtencion' ? `
+                    ${app.status === 'EnProceso' ? `
                         <button class="btn btn-primary btn-block" onclick="completeAndPayAppointment('${app.id}')"><i class="fa-solid fa-check"></i> Cobrar y Finalizar</button>
                     ` : ''}
                     ${app.status === 'Pendiente' ? `
@@ -223,7 +230,7 @@ function setBarberFilter(barberId) {
 
 function updateAppointmentStatus(appId, newStatus) {
     const store = getStore();
-    const app = store.appointments.find(a => a.id === appId);
+    const app = (store.appointments || []).find(a => a.id === appId);
     if (app) {
         app.status = newStatus;
         saveStore(store);
@@ -235,15 +242,16 @@ function updateAppointmentStatus(appId, newStatus) {
 
 function completeAndPayAppointment(appId) {
     const store = getStore();
-    const app = store.appointments.find(a => a.id === appId);
+    const app = (store.appointments || []).find(a => a.id === appId);
     if (!app) return;
 
     app.status = 'Completado';
     app.paid = true;
 
-    const service = store.services.find(s => s.id === app.serviceId) || { name: 'Corte', price: app.amount };
+    const service = (store.services || []).find(s => s.id === app.serviceId) || { name: 'Corte', price: app.amount };
 
     // Registrar en POS
+    if (!store.posTransactions) store.posTransactions = [];
     store.posTransactions.push({
         id: 'pos-' + Date.now(),
         time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -256,9 +264,10 @@ function completeAndPayAppointment(appId) {
     });
 
     // Actualizar cliente en CRM
-    const cli = store.clients.find(c => c.phone === app.clientPhone || c.name === app.clientName);
+    if (!store.clients) store.clients = [];
+    const cli = store.clients.find(c => (app.clientPhone && c.phone === app.clientPhone) || c.name === app.clientName);
     if (cli) {
-        cli.totalSpent += app.amount;
+        cli.totalSpent = (cli.totalSpent || 0) + app.amount;
         cli.lastVisit = app.date;
     }
 
@@ -272,10 +281,10 @@ function completeAndPayAppointment(appId) {
 
 function sendWhatsAppReminder(appId) {
     const store = getStore();
-    const app = store.appointments.find(a => a.id === appId);
+    const app = (store.appointments || []).find(a => a.id === appId);
     if (!app) return;
 
-    const service = store.services.find(s => s.id === app.serviceId) || { name: 'Corte' };
+    const service = (store.services || []).find(s => s.id === app.serviceId) || { name: 'Corte' };
     const msg = encodeURIComponent(`Hola ${app.clientName}! Te confirmamos tu turno de hoy a las ${app.time} hs para "${service.name}" en ${store.shop.name}. ¿Nos confirmas tu asistencia? ¡Te esperamos!`);
     window.open(`https://wa.me/${(app.clientPhone || '').replace(/[^0-9]/g, '')}?text=${msg}`, '_blank');
 }
@@ -308,12 +317,12 @@ function loadPOS() {
     document.getElementById('posTransferToday').textContent = `${curr}${transfer.toFixed(2)}`;
 
     if (!store.posTransactions || store.posTransactions.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay movimientos registrados hoy</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay movimientos registrados aún</td></tr>`;
         return;
     }
 
     tbody.innerHTML = store.posTransactions.slice().reverse().map(t => {
-        const barber = store.barbers.find(b => b.id === t.barberId) || { name: 'Local' };
+        const barber = (store.barbers || []).find(b => b.id === t.barberId) || { name: 'Local' };
         const isExp = t.type === 'expense';
         return `
             <tr>
@@ -349,9 +358,20 @@ function loadCommissions() {
     const tbody = document.getElementById('commissionsTableBody');
     if (!grid || !tbody) return;
 
+    if (!store.barbers || store.barbers.length === 0) {
+        grid.innerHTML = `
+            <div style="grid-column: 1/-1; text-align:center; padding: 2rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+                <p class="text-muted">Aún no has agregado barberos. Ve a la pestaña <strong>Equipo</strong> para añadir a tu personal.</p>
+                <button class="btn btn-primary btn-sm mt-2" onclick="switchMainTab('barbers')">+ Agregar Barbero</button>
+            </div>
+        `;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay cortes realizados</td></tr>`;
+        return;
+    }
+
     const completedApps = (store.appointments || []).filter(a => a.status === 'Completado');
 
-    grid.innerHTML = (store.barbers || []).map(barber => {
+    grid.innerHTML = store.barbers.map(barber => {
         const bApps = completedApps.filter(a => a.barberId === barber.id);
         const totalBilled = bApps.reduce((sum, a) => sum + (a.amount || 0), 0);
         const barberCut = totalBilled * (barber.commissionPct / 100);
@@ -384,13 +404,13 @@ function loadCommissions() {
     }).join('');
 
     if (completedApps.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay cortes completados para liquidar</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay cortes completados para liquidar aún</td></tr>`;
         return;
     }
 
     tbody.innerHTML = completedApps.map(app => {
-        const barber = store.barbers.find(b => b.id === app.barberId) || { name: 'Barbero', commissionPct: 50 };
-        const service = store.services.find(s => s.id === app.serviceId) || { name: 'Servicio' };
+        const barber = (store.barbers || []).find(b => b.id === app.barberId) || { name: 'Barbero', commissionPct: 50 };
+        const service = (store.services || []).find(s => s.id === app.serviceId) || { name: 'Servicio' };
         const barberPay = (app.amount * (barber.commissionPct / 100)).toFixed(2);
         const shopProfit = (app.amount - barberPay).toFixed(2);
 
@@ -423,7 +443,7 @@ function renderClientsTable(list) {
     if (!tbody) return;
 
     if (!list || list.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay clientes registrados aún. Se añadirán automáticamente cuando agendes turnos.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;" class="text-muted">No hay clientes en el historial. Los clientes se añadirán automáticamente al agendar o cobrar turnos.</td></tr>`;
         return;
     }
 
@@ -461,7 +481,19 @@ function loadBarbersManage() {
     const container = document.getElementById('barbersManageContainer');
     if (!container) return;
 
-    container.innerHTML = (store.barbers || []).map(b => `
+    if (!store.barbers || store.barbers.length === 0) {
+        container.innerHTML = `
+            <div style="grid-column: 1/-1; text-align:center; padding: 3rem; background: var(--bg-card); border-radius: var(--radius-md); border: 1px dashed var(--border-color);">
+                <i class="fa-solid fa-user-group text-muted" style="font-size: 2.5rem; margin-bottom: 0.8rem;"></i>
+                <h3>No hay barberos registrados</h3>
+                <p class="text-muted">Agrega los barberos de tu equipo para asignarles turnos y liquidar sus comisiones.</p>
+                <button class="btn btn-primary mt-4" onclick="openAddBarberModal()">+ Agregar Barbero</button>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = store.barbers.map(b => `
         <div class="barber-manage-card">
             <div class="barber-manage-info">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
@@ -480,14 +512,11 @@ function loadBarbersManage() {
 
 function deleteBarber(id) {
     const store = getStore();
-    if ((store.barbers || []).length <= 1) {
-        alert('Debes tener al menos un barbero en el equipo.');
-        return;
-    }
     if (confirm('¿Eliminar este barbero del equipo?')) {
-        store.barbers = store.barbers.filter(b => b.id !== id);
+        store.barbers = (store.barbers || []).filter(b => b.id !== id);
         saveStore(store);
         loadBarbersManage();
+        loadAgenda();
         showToast('Barbero eliminado', 'info');
     }
 }
@@ -501,11 +530,16 @@ function loadServicesManage() {
     const container = document.getElementById('manageServicesList');
     if (!container) return;
 
-    container.innerHTML = (store.services || []).map(s => `
+    if (!store.services || store.services.length === 0) {
+        container.innerHTML = `<p class="text-muted" style="padding: 1rem; text-align:center;">No hay servicios configurados. Agrega uno con el botón "+ Nuevo Servicio".</p>`;
+        return;
+    }
+
+    container.innerHTML = store.services.map(s => `
         <div class="service-item-row">
             <div>
                 <strong>${s.name}</strong>
-                <span class="text-muted" style="display:block; font-size:0.78rem;">${s.duration} min - ${s.desc || ''}</span>
+                <span class="text-muted" style="display:block; font-size:0.78rem;">${s.duration} min ${s.desc ? '- ' + s.desc : ''}</span>
             </div>
             <div style="display:flex; align-items:center; gap:0.8rem;">
                 <strong class="text-green">${curr}${s.price}</strong>
@@ -517,11 +551,7 @@ function loadServicesManage() {
 
 function deleteService(id) {
     const store = getStore();
-    if ((store.services || []).length <= 1) {
-        alert('Debes tener al menos un servicio configurado.');
-        return;
-    }
-    store.services = store.services.filter(s => s.id !== id);
+    store.services = (store.services || []).filter(s => s.id !== id);
     saveStore(store);
     loadServicesManage();
     showToast('Servicio eliminado', 'info');
@@ -543,10 +573,18 @@ function openNewWalkInModal() {
     const curr = store.shop.currency || '$';
 
     const srvSelect = document.getElementById('walkInServiceSelect');
-    srvSelect.innerHTML = (store.services || []).map(s => `<option value="${s.id}">${s.name} (${curr}${s.price})</option>`).join('');
+    if (!store.services || store.services.length === 0) {
+        srvSelect.innerHTML = `<option value="">(Primero agrega servicios en Ajustes)</option>`;
+    } else {
+        srvSelect.innerHTML = store.services.map(s => `<option value="${s.id}">${s.name} (${curr}${s.price})</option>`).join('');
+    }
 
     const barbSelect = document.getElementById('walkInBarberSelect');
-    barbSelect.innerHTML = (store.barbers || []).map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    if (!store.barbers || store.barbers.length === 0) {
+        barbSelect.innerHTML = `<option value="">(Sin asignar / General)</option>`;
+    } else {
+        barbSelect.innerHTML = store.barbers.map(b => `<option value="${b.id}">${b.name}</option>`).join('');
+    }
 
     openModal('walkInModal');
 }
@@ -561,7 +599,7 @@ function handleWalkInSubmit(e) {
     const time = document.getElementById('walkInTime').value;
 
     const store = getStore();
-    const service = store.services.find(s => s.id === srvId);
+    const service = (store.services || []).find(s => s.id === srvId);
 
     const newApp = {
         id: 'app-' + Date.now(),
@@ -571,8 +609,8 @@ function handleWalkInSubmit(e) {
         barberId: barbId,
         date: date,
         time: time,
-        status: 'EnAtencion',
-        notes: 'Cliente en local',
+        status: 'EnProceso',
+        notes: '',
         paid: false,
         amount: service ? service.price : 10
     };
@@ -593,7 +631,7 @@ function handleWalkInSubmit(e) {
             visits: 1,
             totalSpent: 0,
             lastVisit: date,
-            notes: 'Cliente atendido'
+            notes: ''
         });
     }
 
@@ -601,7 +639,7 @@ function handleWalkInSubmit(e) {
     closeModal('walkInModal');
     loadAgenda();
     loadClientsCRM();
-    showToast('Turno guardado y puesto en atención', 'success');
+    showToast('Turno guardado y puesto En Proceso', 'success');
 }
 
 function openQuickSaleModal() {
@@ -659,7 +697,7 @@ function openExpenseModal() {
 
     saveStore(store);
     loadPOS();
-    showToast(`Gasto de $${amount} registrado`, 'info');
+    showToast(`Gasto registrado`, 'info');
 }
 
 function openAddBarberModal() {
@@ -685,7 +723,8 @@ function handleAddBarberSubmit(e) {
     saveStore(store);
     closeModal('addBarberModal');
     loadBarbersManage();
-    showToast(`Barbero ${name} agregado al equipo`, 'success');
+    loadAgenda();
+    showToast(`Barbero ${name} agregado`, 'success');
 }
 
 function openAddServiceModal() {

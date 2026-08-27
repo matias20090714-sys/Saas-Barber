@@ -1,8 +1,8 @@
 /* ==========================================================================
-   BARBERFLOW - MULTI-TENANT ISOLATED DATA STORE
-   Cada barbería tiene su espacio de almacenamiento 100% independiente
-   aislado por ID/Slug en la URL o navegador local.
+   BARBERFLOW - MULTI-TENANT REAL STORE (SIN NINGÚN DATO FICTICIO)
    ========================================================================== */
+
+const STORAGE_VERSION = 'BARBERFLOW_PROD_V2';
 
 function getShopIdFromUrl() {
     const params = new URLSearchParams(window.location.search);
@@ -14,10 +14,11 @@ function getShopIdFromUrl() {
 }
 
 function getStorageKey(shopId) {
-    return `BARBERFLOW_DATA_${shopId || getShopIdFromUrl()}`;
+    return `${STORAGE_VERSION}_${shopId || getShopIdFromUrl()}`;
 }
 
-const DEFAULT_SHOP_TEMPLATE = {
+// Plantilla inicial 100% limpia sin turnos, sin clientes ni barberos ficticios
+const CLEAN_SHOP_TEMPLATE = {
     shop: {
         id: 'mi-barberia',
         name: 'Mi Barbería',
@@ -26,13 +27,10 @@ const DEFAULT_SHOP_TEMPLATE = {
         currency: '$'
     },
     services: [
-        { id: 'srv-1', name: 'Corte de Cabello', duration: 30, price: 10, desc: '' },
-        { id: 'srv-2', name: 'Arreglo de Barba', duration: 20, price: 6, desc: '' },
-        { id: 'srv-3', name: 'Corte + Barba', duration: 45, price: 15, desc: '' }
+        { id: 'srv-1', name: 'Corte de Cabello', duration: 30, price: 10, desc: 'Corte general' },
+        { id: 'srv-2', name: 'Barba', duration: 20, price: 5, desc: 'Arreglo y perfilado' }
     ],
-    barbers: [
-        { id: 'barb-1', name: 'Barbero 1', specialty: 'General', commissionPct: 50, active: true }
-    ],
+    barbers: [],
     appointments: [],
     posTransactions: [],
     clients: []
@@ -44,7 +42,7 @@ function getStore() {
         const key = getStorageKey(shopId);
         const local = localStorage.getItem(key);
         if (!local) {
-            const initial = JSON.parse(JSON.stringify(DEFAULT_SHOP_TEMPLATE));
+            const initial = JSON.parse(JSON.stringify(CLEAN_SHOP_TEMPLATE));
             initial.shop.id = shopId;
             initial.shop.name = formatShopName(shopId);
             saveStore(initial);
@@ -53,7 +51,7 @@ function getStore() {
         return JSON.parse(local);
     } catch (e) {
         console.error('Error al cargar datos', e);
-        return JSON.parse(JSON.stringify(DEFAULT_SHOP_TEMPLATE));
+        return JSON.parse(JSON.stringify(CLEAN_SHOP_TEMPLATE));
     }
 }
 
